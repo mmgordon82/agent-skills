@@ -1,23 +1,21 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
-  <img alt="agent-skills: own skills plus pinned upstream skills with small, readable patches. 24 skills, 14 patches, 4 pinned upstreams." src="docs/assets/hero-light.svg" width="100%">
+  <img alt="agent-skills: one opinionated, token-lean skill set shared by Claude Code, Codex, Kimi, Grok and Pi. Example patch: the taste-skill description becomes typed-only, saving about 230 tokens per session." src="docs/assets/hero-light.svg" width="100%">
 </picture>
 
-One skill set and one global instruction file shared by **Claude Code, Codex, Kimi Code and Grok**.
+My skill set for coding agents. Three things set it apart:
 
-This repo holds three things:
+- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, read by **Claude Code, Codex, Kimi Code, Grok and Pi**. Every agent works from the same directories, the same structure and the same rules.
+- **Token-lean.** Every model-invocable skill puts its description into every session before you type a word. Building this set, I cut 174 skills: about 11k tokens of skill listings that loaded at every session start. Long skills I call by name are now typed-only, and the shared `AGENTS.md` went from 10–11.5k characters per CLI to under 8k. [`skill-critique`](skills/skill-critique/SKILL.md) measures this for your own setup and reviews every skill on the machine.
+- **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, so you can see each opinion and drop the ones you don't share.
 
-- **My own skills**, written from scratch.
-- **Forks** of upstream skills I changed too much to keep as patches, each with its original license.
-- **Patches** on top of other people's skills, pinned to an exact commit. Each patch says why it exists.
-
-`build.py` puts them together, shows which patches break when an upstream moves, and links the result into every CLI.
-
-- [Why an overlay](#why-an-overlay)
+- [What's cooking](#whats-cooking)
 - [How it works](#how-it-works)
 - [Quick start](#quick-start)
 - [The skills](#the-skills)
 - [What I patched, and why](#what-i-patched-and-why)
+- [Customize](#customize)
+- [Releases](#releases)
 - [Recommended upstream packs](#recommended-upstream-packs-not-shipped-here)
 - [AGENTS.md template](#agentsmd-template)
 - [Where each CLI looks](#where-each-cli-looks)
@@ -25,71 +23,87 @@ This repo holds three things:
 - [Writing skills that load reliably](#writing-skills-that-load-reliably)
 - [Repo layout](#repo-layout) · [Licenses](#licenses)
 
-## Why an overlay
+## What's cooking
 
-Most good skills come from someone else's repo. Using them as-is is rarely right:
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/pot-dark.svg">
+  <img alt="A cooking pot. Ingredients fall into it: four pinned upstream repos (backnotprop/pstack, Leonxlnx/taste-skill, skovalik/perception-first-design, mattpocock/skills), two fork sources (pbakaus/impeccable, affaan-m/everything-claude-code) and my own skills. The recipe is upstreams.toml; it serves one skill set to Claude Code, Codex, Kimi, Grok and Pi." src="docs/assets/pot-light.svg" width="100%">
+</picture>
+
+Most good skills come from someone else's repo, and using them as-is is rarely right:
 
 - A pack hardcodes one vendor's model names.
 - A skill runs `curl … | sudo sh`.
 - A description is too long for Codex, which truncates it, so the skill never triggers.
+- A rarely used skill costs hundreds of tokens in every session.
 
-Copying and editing works once. After that your copy drifts from upstream, and nobody can tell what you changed.
-
-This repo keeps upstream at a pinned commit and records each change as a `.patch` you can read in a minute. Updating means moving the pin. If a patch no longer applies, the build says which one.
+Copying and editing works once. After that your copy drifts from upstream, and nobody can tell what you changed. This repo keeps each upstream at a pinned commit and records every change as a `.patch` you can read in a minute. A weekly CI job moves the pins, re-applies the patches and publishes a release when the result changes.
 
 | Approach | Updates from upstream | Your changes visible | Effort |
 |---|---|---|---|
 | Install upstream as-is | yes | no changes possible | none |
 | Copy and edit (detach) | manual, lossy | buried in a copy | grows over time |
-| **Pin + patch (this repo)** | `bump`, broken patches listed | one `.patch` per skill with a `Why:` line | one command |
+| **Pin + patch (this repo)** | weekly CI, broken patches flagged | one `.patch` per skill with a `Why:` line | none until a patch breaks |
 
 ## How it works
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/pipeline-dark.svg">
-  <img alt="Pipeline: pinned upstreams and own skills feed patches and git apply, build.py writes dist/, install links dist into ~/.agents/skills and ~/.claude/skills for Codex, Kimi Code, Claude Code and Grok." src="docs/assets/pipeline-light.svg" width="100%">
+  <img alt="Pipeline: pinned upstreams and own skills feed patches and git apply, build.py writes dist/, install links dist into ~/.agents/skills (Codex, Kimi, Pi) and ~/.claude/skills (Claude Code, Grok)." src="docs/assets/pipeline-light.svg" width="100%">
 </picture>
 
 1. **Pin.** [`upstreams.toml`](upstreams.toml) lists each upstream repo, a full commit sha, its license, and which folders become which skills. `license_file` copies the upstream license into every skill shipped from it.
 2. **Patch.** [`patches/<upstream>/<skill>.patch`](patches) is a plain `git diff` with a `Why:` line on top. Patches apply with `git apply`, and the build stops on the first one that fails.
 3. **Build.** `build.py` checks out each pin, copies the mapped paths, applies the patches, adds [`skills/`](skills), and writes `dist/`. The old `dist/` is replaced only after a fully successful build.
-4. **Install.** Every skill in `dist/` is symlinked into `~/.agents/skills`, which Codex and Kimi read. Each of those is then linked into `~/.claude/skills`, which Claude Code and Grok read. One copy on disk serves all four CLIs.
+4. **Install.** Every skill in `dist/` is symlinked into `~/.agents/skills`, which Codex, Kimi and Pi read. Each of those is then linked into `~/.claude/skills`, which Claude Code and Grok read. One copy on disk serves all five CLIs.
 
-`dist/` is gitignored. It includes upstream assets (one skill alone is 39 MB), so you build it locally instead of cloning it.
+`dist/` is gitignored. It includes upstream assets (one skill alone is 39 MB), so you build it locally or download a [release](#releases).
 
 ## Quick start
 
-Requirements: `git` and [uv](https://docs.astral.sh/uv/). uv installs Python 3.11+ and the script's dependencies (Typer, Pydantic, Rich, tomlkit) on first run.
+**With [`npx skills`](https://github.com/vercel-labs/skills)** (installs the built release set from the `release` branch):
+
+```sh
+npx skills add mmgordon82/agent-skills#release -g --skill '*' -y    # rerun weekly to get new skills too
+npx skills add mmgordon82/agent-skills#20261119 -g --skill '*' -y   # or pin one release
+```
+
+Use `#`, not `@`: `@20261119` is read as a skill name. `npx skills update -g` refreshes skills you already have but never adds new ones, so rerun `add` to pick those up. While the repo is private, this works only for accounts with access (it clones with your git or `gh` login).
+
+**From a release archive:**
+
+```sh
+mkdir -p ~/.agents/skills
+gh release download --repo mmgordon82/agent-skills -p '*.tar.gz' -O - | tar xz -C ~/.agents/skills
+```
+
+Or download the `.tar.gz` or `.zip` from the [releases page](https://github.com/mmgordon82/agent-skills/releases) and extract it into your skills directory. Skills with the same name are replaced. For Claude Code, link each skill into `~/.claude/skills` (see [Where each CLI looks](#where-each-cli-looks)).
+
+**From source** (requires `git` and [uv](https://docs.astral.sh/uv/); uv installs Python 3.11+ and the script's dependencies on first run):
 
 ```sh
 git clone https://github.com/mmgordon82/agent-skills && cd agent-skills
 uv run build.py build      # clone pins into .cache/, apply patches, write dist/
-uv run build.py install    # symlink dist/* into ~/.agents/skills and ~/.claude/skills
+uv run build.py install    # symlink dist/* into ~/.agents/skills and ~/.claude/skills; create the settings file
 ```
 
 `install` never overwrites an existing skill of the same name. It prints `skip … exists` instead. To overlay this repo's patched versions on top of packs you already installed, run `uv run build.py install --force`. Rerunning `install` is safe; links that are already correct are left alone.
-
-Grok also needs to know about the Claude directory. In `~/.grok/config.toml`:
-
-```toml
-extra_skill_dirs = ["~/.claude/skills"]
-```
 
 All commands:
 
 | Command | What it does |
 |---|---|
 | `build` | Builds `dist/` from pins, patches and `skills/`. Fails without touching `dist/` if any patch doesn't apply. |
-| `verify [--against DIR]` | Builds to a temp dir and diffs every skill against an installed copy (default `~/.agents/skills`). Shows exactly which files differ. |
+| `verify [--against DIR]` | Builds to a temp dir and diffs every skill against an installed copy (default `~/.agents/skills`). Shows exactly which files differ; missing or changed skills exit 1. |
 | `diff <upstream> [--from DIR]` | Rewrites that upstream's patches from edited skills (default `dist/`). Keeps each patch's `Why:` header. |
-| `bump <upstream> [sha]` | Moves the pin (default: upstream `HEAD`), lists upstream commits that touched your paths, and reports which patches still apply. |
+| `bump [UPSTREAM…] [--rev SHA]` | Moves pins to upstream `HEAD` (default: all). A pin moves only if all its patches still apply; otherwise it stays, and the command exits 1. |
 | `install [--target] [--claude] [--force]` | Symlinks `dist/` into the skill dirs. |
 
 ## The skills
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/skills-dark.svg">
-  <img alt="Skill map: 24 skills grouped into Workflow, Design and UI, Ship and secure, and Writing, colored by source: own, derived fork, or pinned upstream plus patch." src="docs/assets/skills-light.svg" width="100%">
+  <img alt="Skill map: 26 skills grouped into Workflow, Agent setup, Design and UI, Ship and secure, and Writing, colored by source: own, derived fork, or pinned upstream plus patch." src="docs/assets/skills-light.svg" width="100%">
 </picture>
 
 A `/` before a name means the skill is **typed-only**: it runs when you type `/name` and the model never loads it on its own. These are long skills you want on demand, and keeping them typed-only means their descriptions don't cost context in every session.
@@ -105,9 +119,16 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `/architect` | pstack + patch | Sketch types, signatures and module structure before code, then steer implementation. |
 | `/reflect` | pstack + patch | Three reviewers read the session transcript and turn learnings into edits on existing skills. |
 | `setup-pstack` | pstack + patch | Map pstack roles to *your* models (top / strong / fast / panel tiers). |
-| `run-validation` | own | Picks where a claim gets tested: local machine, local Docker, or a Linux amd64 VM. Never claims compatibility from a lower tier. Browser checks go through chrome-devtools MCP. |
-| `agent-workdir` | own | Every report, probe, log, plan and screenshot goes to `~/agent-work/<project>/<date>-<topic>/`, never into a checkout. |
-| `consulting-grok` | own | Second opinions and offloaded tasks through the Grok CLI: read-only consult and write-access delegate recipes, plus a flag reference. |
+| `adversarial-review` | own | Runs a different agent CLI (Claude, Codex, Grok, Kimi, Pi or any other) headless and read-only to attack your work: bugs, holes, unproven claims, cases you didn't expect. You verify each finding before acting. |
+
+### Agent setup
+
+| Skill | Source | What it does |
+|---|---|---|
+| `run-validation` | own | Picks where a claim gets tested: this machine, local Docker, or a VM matching the deploy target. Knows when CPU architecture matters (native code, binaries, images) and when it doesn't. Browser checks via chrome-devtools or Playwright MCP. |
+| `agent-workdir` | own | Every report, probe, log, plan and screenshot goes to `<root>/<project>/<date>-<topic>/`, never into a checkout. `<root>` is [configurable](#customize), default `~/agent-work`. |
+| `/handoff` | own | Writes a handoff so a fresh agent can continue from the same spot: goal and stated constraints, what was tried, what changed and why, current state, next steps. Saved to `<root>/<project>/handoffs/<YYYY-MM-DD>-<name>.md` ([configurable](#customize)). |
+| `/skill-critique` | own | Reviews every skill on the machine: a categorized overview (where each comes from, which CLIs load it, per-session and on-use cost), the per-session load of each CLI (skills, plugins, hooks, instructions), then proposes and applies cuts, dedupes and one shared layout. Ships `scripts/skill_scan.py`. |
 
 ### Design & UI
 
@@ -116,7 +137,6 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `impeccable` | fork of pbakaus/impeccable | The lead UI workflow: build, critique, audit, polish. Adds `reference/usability.md`, about 55k characters of usability heuristics the skill reads before any UX judgment. |
 | `/design-taste-frontend` | taste-skill + patch | Opinionated website builder for company, landing and product sites. Has its own finish gate. |
 | `/pfd` | perception-first-design + patch | Perception-First Design analysis: analyze, evaluate, solve. |
-| `/make-bot-ui` | pstack + patch | A small UI that wakes a Grok Bot over a webhook, optionally exposed on Tailscale. |
 
 ### Ship & secure
 
@@ -127,7 +147,8 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `web-perimeter-audit` | fork of everything-claude-code | Passive curl probes against a live domain: exposed `.git`, `.env` and lockfiles, CORS reflection, cache poisoning, HSTS/CSP, cookie flags. Includes nginx and Caddy hardening snippets, tested in Docker. |
 | `db-migrations` | fork of everything-claude-code | Postgres-safe migrations: lock modes, `lock_timeout`, `CREATE INDEX CONCURRENTLY`, expand-contract, batched backfills, Django and golang-migrate. |
 | `git-guardrails-claude-code` | mattpocock + patch | Claude Code hooks that block destructive git commands. The patch adds a hook that blocks `--no-verify` and edits to lint, format and pre-commit configs. |
-| `self-hosting` | own | Docker-first packaging defaults, plus the rules for offline or air-gapped targets: mirrors, pinned versions, vendored web assets, a public-hostname grep before shipping. |
+| `docker-packaging` | own | Docker-first packaging: one small dockerizable app, existing pinned images over new Dockerfiles, Docker only where it validates something. |
+| `airgap` | own | Only for targets you call offline. Build it: internal mirrors (optionally from [settings](#customize)), sensible version pins, no public fetches, vendored assets. Prove it: isolated runs (`--network none`, Linux netns), a network probe, a browser request audit, Playwright offline and native-error recipes, a public-host scan. |
 
 ### Writing
 
@@ -145,7 +166,6 @@ Each line is the `Why:` header of the patch file it links to.
 | Patch | Why |
 |---|---|
 | [pstack/architect](patches/pstack/architect.patch), [arena](patches/pstack/arena.patch), [poteto-mode](patches/pstack/poteto-mode.patch), [reflect](patches/pstack/reflect.patch), [swarm](patches/pstack/swarm.patch), [setup-pstack](patches/pstack/setup-pstack.patch) | Replace Cursor model slugs with generic tiers (top / strong / fast / panel) so the pack runs in any CLI. |
-| [pstack/make-bot-ui](patches/pstack/make-bot-ui.patch) | Drop the `curl \| sudo sh` Tailscale install; ask the user to install it instead. |
 | [pstack/no-comments](patches/pstack/no-comments.patch) | Comments are one line, two at most. |
 | [pstack/technical-writing](patches/pstack/technical-writing.patch) | Let the model invoke it. Add strict mode, define terms, never drop caveats, and grounding and table rules, merged from Simplified Technical English and plain-writing skills. |
 | [pstack/unslop](patches/pstack/unslop.patch) | Let the model invoke it, put trigger words first in the description, and add rules 34–41, a "How to apply" section and a Simplified Technical English lint script, merged from three anti-slop skills. |
@@ -159,6 +179,93 @@ Two upstreams became forks because their diffs would have been the whole skill:
 - **impeccable** ([CHANGES.md](skills/impeccable/CHANGES.md)) is a trimmed fork. It adds `usability.md`, a no-fake-data rule, mobile viewport rules, and online-by-default assets.
 - **everything-claude-code**: four skills rewritten for self-hosted Python/Go work, each with an `Adapted from … @3f14a10` line and the MIT license.
 
+## Customize
+
+Skills read one settings file, the same for every CLI: `${XDG_CONFIG_HOME:-~/.config}/agent-skills/settings.toml`. `build.py install` creates it from [`settings.example.toml`](settings.example.toml) if it doesn't exist and never overwrites it. Installed another way (`npx skills`, a release archive)? Create it yourself:
+
+```sh
+mkdir -p ~/.config/agent-skills && $EDITOR ~/.config/agent-skills/settings.toml
+```
+
+with this content, then change what you need:
+
+```toml
+# agent-skills settings: ${XDG_CONFIG_HOME:-~/.config}/agent-skills/settings.toml
+# Every key is optional. A missing file or key means the default shown here.
+
+[workdir]
+# Where agents put reports, probes, logs, plans and handoffs: <root>/<project>/<YYYY-MM-DD>-<topic>/.
+# Absolute or ~-prefixed. Never inside a repo checkout.
+root = "~/agent-work"
+
+[handoff]
+# Folder for /handoff documents, relative to <root>/<project>/.
+dir = "handoffs"
+
+[review]
+# adversarial-review picks the first installed CLI in this list that isn't the one running.
+reviewers = ["codex", "grok", "claude", "kimi", "pi"]
+
+[offline]
+# Optional. Internal mirrors for the airgap skill, used only when you say a target is
+# offline. Leave them empty if you don't need them: agents then work as they normally would.
+apt_mirror = ""           # e.g. "https://artifactory.example.com/artifactory/debian-remote"
+pypi_index = ""           # e.g. "https://artifactory.example.com/artifactory/api/pypi/pypi-remote/simple"
+npm_registry = ""         # e.g. "https://artifactory.example.com/artifactory/api/npm/npm-remote/"
+go_proxy = ""             # e.g. "https://artifactory.example.com/artifactory/api/go/go-remote"
+container_registry = ""   # e.g. "artifactory.example.com/docker-remote"
+
+[validation]
+# The platform you usually deploy to: "linux/amd64" or "linux/arm64". A project's AGENTS.md overrides it.
+# Architecture-dependent claims (native code, binaries, images) need an environment with this arch.
+target = "linux/amd64"
+# Browser-check tool: "chrome-devtools", "playwright", or "none".
+browser = "chrome-devtools"
+# Name of a private skill with machine-specific commands (VM CLI, MCP wrapper paths).
+# run-validation reads it when it needs a VM. Leave as is if you don't have one.
+local_tooling = "local-tooling"
+```
+
+| Key | Used by |
+|---|---|
+| `workdir.root` | `agent-workdir`, `handoff`, `adversarial-review`, `skill-critique`, and the AGENTS.md template |
+| `handoff.dir` | `handoff` |
+| `review.reviewers` | `adversarial-review` |
+| `offline.*` | `airgap`, optional: used only when set and the target is offline |
+| `validation.*` | `run-validation`: deploy target arch, browser tool, private VM-tooling skill |
+
+- **No file, or a key missing:** the agent uses the default shown above without asking. A fresh install behaves exactly like the defaults.
+- **Broken file or bad value** (invalid TOML, wrong type, a relative or in-repo `root`): the agent uses the default for that task and tells you which key to fix. It never writes output into the repo instead.
+- **`root` missing on disk:** the agent creates it. If it can't, it stops and asks.
+
+**Your own skills can use it too.** The file isn't reserved for this repo's skills. Give each of your skills its own section, named after the skill so keys never clash, and put private values there (hostnames, tool paths, account names) instead of in the skill. Skills here ignore sections they don't know, and `install` never overwrites the file. Add a section:
+
+```toml
+[my-skill]
+api_base = "https://internal.example.com"
+```
+
+and paste this into your skill's `SKILL.md`:
+
+```markdown
+**Settings:** read `[my-skill]` from `${XDG_CONFIG_HOME:-$HOME/.config}/agent-skills/settings.toml`.
+No file or no key → use the defaults below. A broken value → use the default and tell the user which key to fix.
+```
+
+## Releases
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) runs every Monday and on manual dispatch (**Actions → release → Run workflow**):
+
+1. `build.py bump` moves every pin to its upstream `HEAD`. An upstream whose patches no longer apply keeps its old pin.
+2. `build.py build` writes `dist/`.
+3. [`ci/release.py`](ci/release.py) compares `dist/` with the last published release, as git trees (file contents and modes). If nothing changed (for example, an upstream commit only touched its CI config), it stops. No release.
+4. Otherwise it commits the moved pins to `main`, then commits `dist/` as one new commit on the **`release` branch**: the skill folders at the root, nothing else, with a `Source: <main sha>` trailer. So `git diff 20261119 20261126` (or GitHub's compare view) shows exactly what changed for users between two releases, and `npx skills add …#release` installs it.
+5. It tags that commit with the date (`20261119`; a second release that day is `20261119.2`) and publishes a GitHub release with `agent-skills-<version>.tar.gz` and `.zip`. Each archive holds the skill folders, ready to extract into a skills directory.
+6. The release notes are a bullet-point changelog that OpenAI `gpt-6.1-terra` writes from the diff between the two release commits, the upstream commit logs and this repo's commits. If generation fails, the release still publishes with fallback notes, then the job exits 1 to alert you. The prompt and model are in `ci/release.py`.
+7. If an upstream was held back, the job fails after releasing, so you get notified and can rebase that patch.
+
+Setup: add an `OPENAI_API_KEY` repository secret. To preview a release locally: `OPENAI_API_KEY=… uv run ci/release.py --dry-run`. A run that pushed the branch but failed to publish finishes the same release on the next run.
+
 ## Recommended upstream packs (not shipped here)
 
 Skills I use unmodified. Install them from their source so you get their updates:
@@ -167,17 +274,17 @@ Skills I use unmodified. Install them from their source so you get their updates
 |---|---|---|
 | [backnotprop/pstack](https://github.com/backnotprop/pstack) | The rest of pstack: 58 principle and workflow skills. `/poteto-mode` refers to them, so install the full pack, then overlay this repo's patched versions with `install --force`. | clone, then copy `skills/*` into `~/.agents/skills` |
 | [emilkowalski/skills](https://github.com/emilkowalski/skills) | 20 animation and design-engineering skills: `animate`, `choreograph`, `gestures`, `review-animations`, `apple-design`, `mobile-native`… | `npx skills add emilkowalski/skills -g` |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | Engineering workflow: `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grilling`, `to-spec`, `wizard`, plus typed-only long-form writing (`writing-fragments` → `writing-beats` / `writing-shape`). | `npx skills add mattpocock/skills -g` |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | Engineering workflow: `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grilling`, `to-spec`, `wizard`, plus typed-only long-form writing (`writing-fragments` → `writing-beats` / `writing-shape`). Its `handoff` has the same name as this repo's; `install --force` keeps mine. | `npx skills add mattpocock/skills -g` |
 | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | Local design research database that `impeccable` consults. | `npx skills add nextlevelbuilder/ui-ux-pro-max-skill -g` |
 | [dzhng/jevgrep](https://github.com/dzhng/jevgrep) | Answers "how does X work in this repo" with ranked excerpts before grep. | `npx skills add dzhng/jevgrep -g` |
 | [obra/superpowers](https://github.com/obra/superpowers) | `brainstorming` (I also run the full plugin in Claude Code). | `npx skills add obra/superpowers -g` |
 | [rea-agents](https://www.npmjs.com/package/rea-agents) | Reverse Engineer Anything: MCP server and skill for binaries, apps, firmware and web bundles. It manages its own skill copy. | `npm i -g rea-agents && rea setup` |
 
-The skills CLI may write real copies into `~/.claude/skills`. To keep one source, move them to `~/.agents/skills` and symlink them back.
+The skills CLI may write real copies into `~/.claude/skills`. To keep one source, move them to `~/.agents/skills` and symlink them back. `/skill-critique` finds these copies for you.
 
 ## AGENTS.md template
 
-[`AGENTS.template.md`](AGENTS.template.md) is my global instruction file with personal details replaced by placeholders. It is short on purpose (about 7.4k characters; Grok's cap is 10k). Detailed procedures live in skills that the file points to by path:
+[`AGENTS.template.md`](AGENTS.template.md) is my global instruction file with personal details replaced by placeholders. It is short on purpose (about 7.5k characters; Grok's cap is 10k). Detailed procedures live in skills that the file points to by path:
 
 | Section | Holds | Details in |
 |---|---|---|
@@ -185,7 +292,7 @@ The skills CLI may write real copies into `~/.claude/skills`. To keep one source
 | Match effort | Small: just do it. Big: spec → approval → plan. | — |
 | Engineering taste | Simplicity > maintainability > correctness > performance; parse at boundaries; rerunnable ops; behavior tests | — |
 | Languages & dependencies | Python → Go → Bash → JS; use good libraries; uv + PEP 723 | — |
-| Self-hosting | Online by default; offline only when stated | `self-hosting` |
+| Self-hosting | Online by default; offline only when stated | `docker-packaging`, `airgap` |
 | Behavior I expect | Verify against the real output; test the assumption after two failed fixes; encode repeated corrections as checks | — |
 | Where to run validation | Pick the first environment that has every property the claim depends on | `run-validation` |
 | Agent work dir | Output never goes into a checkout | `agent-workdir` |
@@ -198,18 +305,20 @@ cp AGENTS.template.md ~/.agents/AGENTS.md            # then fill in the <PLACEHO
 ln -sf ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
 ln -sf ~/.agents/AGENTS.md ~/.codex/AGENTS.md
 ln -sf ~/.agents/AGENTS.md ~/.grok/AGENTS.md
+mkdir -p ~/.pi/agent && ln -sf ~/.agents/AGENTS.md ~/.pi/agent/AGENTS.md
 ```
 
-Machine-specific commands (VM CLIs, MCP wrapper scripts) belong in a private `local-tooling` skill that you don't publish. `run-validation` reads it by path when it exists.
+Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CLIs, MCP wrapper scripts) belong in a private `local-tooling` skill that you don't publish. `run-validation` reads it by path when it exists.
 
 ## Where each CLI looks
 
 | CLI | Skills | Global instructions | Notes |
 |---|---|---|---|
 | Claude Code | `~/.claude/skills`, plugins | `~/.claude/CLAUDE.md` | `disable-model-invocation: true` makes a skill typed-only. |
-| Codex | `~/.agents/skills`, `~/.codex/skills`, plugins | `~/.codex/AGENTS.md` | Truncates descriptions to about 80 characters. Typed-only needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`. |
-| Kimi Code | `~/.agents/skills`, `~/.kimi-code/skills`, `~/.claude/skills`, `~/.codex/skills` | `~/.agents/AGENTS.md` | Reads all four trees; the symlinks resolve to the same copy. |
-| Grok | `~/.grok/skills`, plus `extra_skill_dirs` | `~/.grok/AGENTS.md` | Global instructions are capped at 10k characters. |
+| Codex | `~/.agents/skills`, `~/.codex/skills`, plugins | `~/.codex/AGENTS.md` | Truncates descriptions to about 80 characters. Typed-only needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`. Skips skills with invalid YAML frontmatter. |
+| Kimi Code | `~/.kimi-code/skills`, `~/.agents/skills`; more via `extra_skill_dirs` in `~/.kimi-code/config.toml` | `~/.agents/AGENTS.md` | Typed-only: `disable-model-invocation` (also accepts `disableModelInvocation`). |
+| Grok | `~/.grok/skills`, `~/.claude/skills`, `.agents/skills`; more via `[skills] paths` | `~/.grok/AGENTS.md` | Reads the Claude dir by default (Grok 1.0.77). `[paths] extra_skill_dirs` does not add skills. Global instructions are capped at 10k characters. |
+| Pi | `~/.pi/agent/skills`, `~/.agents/skills` | `~/.pi/agent/AGENTS.md` | Honors `disable-model-invocation`. Set `PI_CODING_AGENT_DIR` to move `~/.pi/agent`. |
 
 ## Working with patches
 
@@ -226,46 +335,53 @@ To capture edits you made in your installed skills, run `diff pstack --from ~/.a
 
 **Patch a new upstream skill:** add it to that upstream's `paths` in `upstreams.toml`, build, edit `dist/<skill>`, then run `diff`. Add a `Why:` line at the top of the new patch.
 
-**Update an upstream:**
+**Update an upstream by hand:**
 
 ```sh
-uv run build.py bump pstack              # moves the pin to upstream HEAD
-# backnotprop/pstack: 059190e → 0d2dc00, 2 commits touch our paths
+uv run build.py bump pstack              # tries upstream HEAD
+# pstack: 059190e → 0d2dc00, 2 commits touch our paths
 # pstack  arena.patch   error: patch failed: arena/SKILL.md:14
+# held back pstack: patches don't apply at the new commit.
 ```
 
-Fix each failing patch by hand-applying it in `dist/` and running `diff`, or revert `upstreams.toml`. `bump` never touches `dist/`.
+A held-back pin stays where it was. To rebase, check out the new commit, apply the patch with `git apply --3way`, fix the conflicts, regenerate the patch, then run `bump pstack --rev <sha>`.
 
-**Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte.
+**Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte. Missing or changed skills exit 1.
+
+**Run development checks:** `uv run tests/run.py`. The PR/main workflow also builds and verifies `dist/`, checks generated graphics, and runs the PostgreSQL batching example on PostgreSQL 16.
 
 ## Writing skills that load reliably
 
-Lessons from running one skill set across four CLIs:
+Lessons from running one skill set across five CLIs:
 
 - **Trigger words first.** Codex shows about 80 characters of a description. Start with "Use when …" and the words a user would actually say.
+- **Quote descriptions that contain `: `.** `description: Use for X: Y` is invalid YAML. Claude Code tolerates it; strict parsers drop the skill without a word.
 - **Name the path in AGENTS.md.** A one-line rule plus the explicit `SKILL.md` path loads far more reliably than a good description alone: "Before running tests… read the `run-validation` skill (`~/.agents/skills/run-validation/SKILL.md`)."
 - **Put the must-read line at the top of the skill.** A reference file the agent has to read, such as `usability.md`, gets a bold line at the top of `SKILL.md`. Mentioning it in passing is not enough.
-- **Make long skills typed-only.** They cost no context until you call them. Set it for both Claude (`disable-model-invocation`) and Codex (`agents/openai.yaml`).
+- **Make long skills typed-only.** They cost no context until you call them. Set it for Claude, Grok, Kimi and Pi (`disable-model-invocation`) and for Codex (`agents/openai.yaml`).
 - **One source on disk.** `~/.agents/skills` holds the real copies; everything else links to it. Duplicate copies drift.
 
 ## Repo layout
 
 ```
 AGENTS.template.md     global instructions, placeholders for personal parts
+settings.example.toml  defaults for ~/.config/agent-skills/settings.toml
 upstreams.toml         pins: repo, sha, license, paths
 patches/<upstream>/    one .patch per skill, each with a Why: header
 skills/                own skills, plus forks that carry their own LICENSE
 build.py               build · verify · diff · bump · install (uv script)
+ci/release.py          compare with the last release, release branch commit, changelog, archives
+.github/workflows/     weekly + manual release job
 docs/graphics.py       renders docs/assets/*.svg from the repo data
 ```
 
-`docs/graphics.py` reads `upstreams.toml`, `skills/` and `dist/`, so the counts and the skill map stay accurate. Run `uv run docs/graphics.py` after adding a skill. It fails if a skill isn't placed in a group.
+`docs/graphics.py` reads `upstreams.toml`, `skills/`, `patches/` and `dist/`, so the counts and the skill map stay accurate. Run `uv run docs/graphics.py` after adding a skill. It fails if a skill isn't placed in a column.
 
 ## Licenses
 
 | Content | License |
 |---|---|
-| Own skills, `build.py`, docs, template | [MIT](LICENSE) |
+| Own skills, `build.py`, `ci/`, docs, template, settings example | [MIT](LICENSE) |
 | pstack, taste-skill and mattpocock skills, plus patches to them | MIT; each built skill carries its upstream `LICENSE` |
 | `pfd` and its patch | CC BY-SA 4.0 (share-alike applies to the adaptation) |
 | `impeccable` | Apache-2.0: `LICENSE`, `NOTICE.md` and `CHANGES.md` in the skill |
