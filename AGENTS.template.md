@@ -1,9 +1,9 @@
 # AGENTS.md — Personal preferences (<YOUR NAME>)
 
 Cross-cutting preferences for ALL my work, every repo. Project/org rules live in that
-project's own AGENTS.md/CLAUDE.md (e.g. ~/Projects/<project>/AGENTS.md) and override this on conflict.
+project's own AGENTS.md/CLAUDE.md and override this on conflict.
 Single source: `~/.agents/AGENTS.md`; `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`,
-`~/.grok/AGENTS.md` are symlinks to it.
+`~/.grok/AGENTS.md`, `~/.pi/agent/AGENTS.md` are symlinks to it.
 
 ## How to talk to me
 - Lead with the answer or recommendation. No preamble, no restating my request, no
@@ -56,8 +56,10 @@ Single source: `~/.agents/AGENTS.md`; `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md
 ## Self-hosting
 - Default to self-hostable, dockerizable designs. Online dependencies (CDNs, fonts, APIs)
   are fine by default; I'll say when a target is offline/air-gapped.
-- Packaging, image choice, and offline-target rules → read the `self-hosting` skill
-  (`~/.agents/skills/self-hosting/SKILL.md`).
+- Packaging and image choice → the `docker-packaging` skill
+  (`~/.agents/skills/docker-packaging/SKILL.md`). Offline or air-gapped target → also the
+  `airgap` skill (`~/.agents/skills/airgap/SKILL.md`).
+
 ## Behavior I expect
 - Verify against the source of truth; don't assume. Read the real code/output and run
   it — especially before claiming something works or naming a root cause.
@@ -85,13 +87,16 @@ Single source: `~/.agents/AGENTS.md`; `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md
 ## Where to run validation
 Before planning or running tests, builds, containers, VMs, or browser checks → read the
 `run-validation` skill (`~/.agents/skills/run-validation/SKILL.md`). Core rule: state the claim being tested, then use the first environment that contains
-every property relevant to it — 1. Local Mac, 2. Local Docker (arm64), 3. Linux amd64 VM
-(your VM tool; machine-specific commands in a private `local-tooling` skill). Never claim deployment or architecture compatibility from a lower tier.
+every property relevant to it — 1. this machine, 2. local Docker, 3. a VM matching the deploy
+target (your VM tool). CPU architecture matters only for native code, binaries and images;
+never claim deployment or architecture compatibility from an environment without that property.
 
-## Agent work dir (~/agent-work)
+## Agent work dir
 Agent output (audits, reports, probes, scratch scripts, logs, screenshots, handoffs, plans,
-specs, research) → `~/agent-work/<project>/<YYYY-MM-DD>-<topic>/`, never inside a checkout.
+specs, research) → `<root>/<project>/<YYYY-MM-DD>-<topic>/`, never inside a checkout. `<root>`
+is `[workdir] root` in `~/.config/agent-skills/settings.toml` (default `~/agent-work`).
 Before writing any of it, read the `agent-workdir` skill (`~/.agents/skills/agent-workdir/SKILL.md`).
+
 ## Scripts & tooling (KISS)
 - No hidden state, no silent magic auto-discovery.
 - Safe defaults: never delete or overwrite without an explicit flag.

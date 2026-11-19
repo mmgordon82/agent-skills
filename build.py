@@ -27,6 +27,7 @@ OWN = ROOT / "skills"
 PATCHES = ROOT / "patches"
 UPSTREAMS = ROOT / "upstreams.toml"
 DIST = ROOT / "dist"
+SETTINGS = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "agent-skills" / "settings.toml"
 JUNK = {".DS_Store", "__pycache__", ".git"}
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help=__doc__)
@@ -246,15 +247,15 @@ def bump(upstream: str, rev: Annotated[str | None, typer.Argument(help="Commit s
 @app.command()
 def install(
     target: Annotated[Path, typer.Option(help="Shared skills dir (Codex, Kimi)")] = Path("~/.agents/skills"),
-    claude: Annotated[Path | None, typer.Option(help="Also link here (Claude Code, Grok); pass '' to skip")] = Path("~/.claude/skills"),
+    claude: Annotated[str, typer.Option(help="Also link here (Claude Code, Grok); pass '' to skip")] = "~/.claude/skills",
     force: Annotated[bool, typer.Option(help="Replace existing skills with the same name")] = False,
 ) -> None:
-    """Symlink every dist/ skill into TARGET, and TARGET/<skill> into CLAUDE."""
+    """Symlink every dist/ skill into TARGET, and TARGET/<skill> into CLAUDE. Creates the settings file if missing."""
     if not DIST.exists():
         console.print("[red]no dist/; run build first[/]")
         raise typer.Exit(1)
     target = target.expanduser()
-    dirs = [(target, DIST)] + ([(claude.expanduser(), target)] if claude and str(claude) else [])
+    dirs = [(target, DIST)] + ([(Path(claude).expanduser(), target)] if claude else [])
     skipped = 0
     for skill in sorted(p.name for p in DIST.iterdir()):
         for into, src in dirs:
@@ -270,6 +271,12 @@ def install(
                 shutil.rmtree(link) if link.is_dir() and not link.is_symlink() else link.unlink()
             link.symlink_to(want)
     console.print(f"[green]installed into {', '.join(str(d) for d, _ in dirs)}[/]" + (f", {skipped} skipped" if skipped else ""))
+    if SETTINGS.exists():
+        console.print(f"settings: {SETTINGS} (kept)")
+    else:
+        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "settings.example.toml", SETTINGS)
+        console.print(f"settings: created {SETTINGS} from settings.example.toml; edit it to customize")
 
 
 if __name__ == "__main__":

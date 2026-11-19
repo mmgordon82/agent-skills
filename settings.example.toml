@@ -1,0 +1,34 @@
+# agent-skills settings: ${XDG_CONFIG_HOME:-~/.config}/agent-skills/settings.toml
+# Every key is optional. A missing file or key means the default shown here.
+
+[workdir]
+# Where agents put reports, probes, logs, plans and handoffs: <root>/<project>/<YYYY-MM-DD>-<topic>/.
+# Absolute or ~-prefixed. Never inside a repo checkout.
+root = "~/agent-work"
+
+[handoff]
+# Folder for /handoff documents, relative to <root>/<project>/.
+dir = "handoffs"
+
+[review]
+# adversarial-review picks the first installed CLI in this list that isn't the one running.
+reviewers = ["codex", "grok", "claude", "kimi", "pi"]
+
+[offline]
+# Optional. Internal mirrors for the airgap skill, used only when you say a target is
+# offline. Leave them empty if you don't need them: agents then work as they normally would.
+apt_mirror = ""           # e.g. "https://artifactory.example.com/artifactory/debian-remote"
+pypi_index = ""           # e.g. "https://artifactory.example.com/artifactory/api/pypi/pypi-remote/simple"
+npm_registry = ""         # e.g. "https://artifactory.example.com/artifactory/api/npm/npm-remote/"
+go_proxy = ""             # e.g. "https://artifactory.example.com/artifactory/api/go/go-remote"
+container_registry = ""   # e.g. "artifactory.example.com/docker-remote"
+
+[validation]
+# The platform you usually deploy to: "linux/amd64" or "linux/arm64". A project's AGENTS.md overrides it.
+# Architecture-dependent claims (native code, binaries, images) need an environment with this arch.
+target = "linux/amd64"
+# Browser-check tool: "chrome-devtools", "playwright", or "none".
+browser = "chrome-devtools"
+# Name of a private skill with machine-specific commands (VM CLI, MCP wrapper paths).
+# run-validation reads it when it needs a VM. Leave as is if you don't have one.
+local_tooling = "local-tooling"
