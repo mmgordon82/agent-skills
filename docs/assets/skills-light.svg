@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="556" viewBox="0 0 1200 556" role="img" aria-labelledby="t">
+<title id="t">Skill map: 24 skills grouped by job, colored by source</title>
+<style>
+  .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
+  .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
+  .flow { stroke-dasharray: 4 6; animation: flow 1.2s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -20; } }
+  
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; opacity: 1 !important; transform: none !important; } }
+</style>
+<defs>
+  <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6eaef"/></pattern>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker>
+</defs>
+<rect width="1200" height="556" rx="16" fill="#ffffff"/>
+<rect width="1200" height="556" rx="16" fill="url(#dots)"/>
+<rect x="0.5" y="0.5" width="1199" height="555" rx="16" fill="none" stroke="#d1d9e0"/>
+<text x="40" y="52" class="sans" font-size="17" font-weight="700" fill="#1f2328" text-anchor="start" >Workflow</text>
+<text x="290" y="52" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="end" >10</text>
+<line x1="40" y1="66" x2="290" y2="66" stroke="#d1d9e0"/>
+<rect x="40" y="82" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="98" r="5" fill="#9a6700"/>
+<text x="74" y="103" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/poteto-mode</text>
+<rect x="40" y="122" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="138" r="5" fill="#8250df"/>
+<text x="74" y="143" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >delegate</text>
+<rect x="40" y="162" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="178" r="5" fill="#9a6700"/>
+<text x="74" y="183" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/swarm</text>
+<rect x="40" y="202" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="218" r="5" fill="#9a6700"/>
+<text x="74" y="223" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/arena</text>
+<rect x="40" y="242" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="258" r="5" fill="#9a6700"/>
+<text x="74" y="263" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/architect</text>
+<rect x="40" y="282" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="298" r="5" fill="#9a6700"/>
+<text x="74" y="303" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/reflect</text>
+<rect x="40" y="322" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="338" r="5" fill="#9a6700"/>
+<text x="74" y="343" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >setup-pstack</text>
+<rect x="40" y="362" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="378" r="5" fill="#8250df"/>
+<text x="74" y="383" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >run-validation</text>
+<rect x="40" y="402" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="418" r="5" fill="#8250df"/>
+<text x="74" y="423" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >agent-workdir</text>
+<rect x="40" y="442" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="58" cy="458" r="5" fill="#8250df"/>
+<text x="74" y="463" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >consulting-grok</text>
+<text x="330" y="52" class="sans" font-size="17" font-weight="700" fill="#1f2328" text-anchor="start" >Design &amp; UI</text>
+<text x="580" y="52" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="end" >4</text>
+<line x1="330" y1="66" x2="580" y2="66" stroke="#d1d9e0"/>
+<rect x="330" y="82" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="348" cy="98" r="5" fill="#0969da"/>
+<text x="364" y="103" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >impeccable</text>
+<rect x="330" y="122" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="348" cy="138" r="5" fill="#9a6700"/>
+<text x="364" y="143" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/design-taste-frontend</text>
+<rect x="330" y="162" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="348" cy="178" r="5" fill="#9a6700"/>
+<text x="364" y="183" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/pfd</text>
+<rect x="330" y="202" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="348" cy="218" r="5" fill="#9a6700"/>
+<text x="364" y="223" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/make-bot-ui</text>
+<text x="620" y="52" class="sans" font-size="17" font-weight="700" fill="#1f2328" text-anchor="start" >Ship &amp; secure</text>
+<text x="870" y="52" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="end" >6</text>
+<line x1="620" y1="66" x2="870" y2="66" stroke="#d1d9e0"/>
+<rect x="620" y="82" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="98" r="5" fill="#0969da"/>
+<text x="654" y="103" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >ship-audit</text>
+<rect x="620" y="122" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="138" r="5" fill="#0969da"/>
+<text x="654" y="143" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >security-hunt</text>
+<rect x="620" y="162" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="178" r="5" fill="#0969da"/>
+<text x="654" y="183" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >web-perimeter-audit</text>
+<rect x="620" y="202" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="218" r="5" fill="#0969da"/>
+<text x="654" y="223" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >db-migrations</text>
+<rect x="620" y="242" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="258" r="5" fill="#9a6700"/>
+<text x="654" y="263" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >git-guardrails-claude-code</text>
+<rect x="620" y="282" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="638" cy="298" r="5" fill="#8250df"/>
+<text x="654" y="303" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >self-hosting</text>
+<text x="910" y="52" class="sans" font-size="17" font-weight="700" fill="#1f2328" text-anchor="start" >Writing</text>
+<text x="1160" y="52" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="end" >4</text>
+<line x1="910" y1="66" x2="1160" y2="66" stroke="#d1d9e0"/>
+<rect x="910" y="82" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="928" cy="98" r="5" fill="#9a6700"/>
+<text x="944" y="103" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >unslop</text>
+<rect x="910" y="122" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="928" cy="138" r="5" fill="#9a6700"/>
+<text x="944" y="143" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >technical-writing</text>
+<rect x="910" y="162" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="928" cy="178" r="5" fill="#9a6700"/>
+<text x="944" y="183" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >/no-comments</text>
+<rect x="910" y="202" width="250" height="32" rx="16" fill="#f6f8fa" stroke="#d1d9e0"/>
+<circle cx="928" cy="218" r="5" fill="#9a6700"/>
+<text x="944" y="223" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >writing-for-agents</text>
+<line x1="40" y1="498" x2="1160" y2="498" stroke="#d1d9e0"/>
+<circle cx="46" cy="524" r="5" fill="#8250df"/>
+<text x="60" y="529" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >own (5)</text>
+<circle cx="157.3" cy="524" r="5" fill="#0969da"/>
+<text x="171.3" y="529" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >derived fork + LICENSE (5)</text>
+<circle cx="418.7" cy="524" r="5" fill="#9a6700"/>
+<text x="432.7" y="529" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >pinned upstream + patch (14)</text>
+<text x="1160" y="529" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="end" >/name = typed-only command</text>
+</svg>

@@ -1,0 +1,303 @@
+Why: Model-invocable; trigger-first description; rules #34-41 + 'How to apply' + scripts/ste_lint.py merged from stop-slop/anti-slop/STE skills.
+
+diff --git a/unslop/SKILL.md b/unslop/SKILL.md
+index 97f5b64..ef56ac1 100644
+--- a/unslop/SKILL.md
++++ b/unslop/SKILL.md
+@@ -1,7 +1,6 @@
+ ---
+ name: unslop
+-description: Cut AI tells from any writing.
+-disable-model-invocation: true
++description: Use when writing or reviewing prose (docs, PRs, commits, issues, UI copy) to cut AI tells.
+ ---
+ 
+ # Unslop
+@@ -19,8 +18,8 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
+ 
+ ### Language
+ 
+-7. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Replace with plain words.
+-8. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Say "is" or "has".
++7. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Marketing adjectives too: seamless, robust, powerful, cutting-edge, world-class, revolutionary, game-changer, empower, unlock. Business phrasal verbs: navigate, unpack, lean into, double down, deep dive, circle back, moving forward. Replace with plain words.
++8. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Say "is" or "has". Keep the verb when it enumerates, defines, or locates: "the retry policy serves three failure modes: ...".
+ 9. **"Not just X, but Y."** State the point directly instead.
+ 10. **Rule of three.** Don't force ideas into groups of three. Use the natural number.
+ 11. **Synonym cycling.** Protagonist, main character, central figure, hero all in one paragraph. Pick one, repeat it.
+@@ -45,7 +44,7 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
+ 
+ 23. **Filler phrases.** "In order to" becomes "To". "Due to the fact that" becomes "Because". Delete "It is important to note that".
+ 24. **Excessive hedging.** "could potentially possibly be argued that it might" becomes "may".
+-25. **Generic conclusions.** "The future looks bright." State specific plans or facts.
++25. **Generic conclusions.** "The future looks bright.", "Despite ongoing challenges, X continues to thrive.", "Looking ahead, X will play a pivotal role." State specific plans or facts.
+ 
+ ### Jargon
+ 
+@@ -60,3 +59,21 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
+ 31. **Prefer the plain word.** "utilize" and "leverage" become "use", "facilitate" becomes "help", "numerous" becomes "many", "in the event that" becomes "if". The fancier synonym is rarely clearer.
+ 32. **Mannered prose.** Metaphor or flourish where a literal phrase exists: aphorisms ("wire it or delete it"), rhetorical fragments for effect, personified code ("the plan holds it"), figurative verbs ("rides along", "stands on"), stock framing phrases. "A dial worth turning" becomes "a parameter worth varying". Say what you mean. Rule 26 covers the metaphor nouns.
+ 33. **Over-compression.** Dropped articles, verbless fragments, symbol-speak, and abbreviations that make the reader decode instead of read. "Parser rejects bad date → exit 2, no write" becomes "The parser rejects a bad date, exits with code 2, and writes nothing." Write whole sentences with their articles and verbs, and spell out arrows and abbreviations.
++
++### Added rules
++
++34. **Throat-clearing openers.** "Here's the thing", "Here's why", "It turns out", "The truth is", "Let me be clear", "The real X is". Cut the opener and state the point.
++35. **Emphasis crutches and meta-commentary.** "Let that sink in.", "Full stop.", "Make no mistake", "This matters because", "It's worth noting", "At its core", "At the end of the day". Delete them.
++36. **False agency.** An inanimate subject with a human verb: "the decision emerged", "complaints became fixes", "the bet lives or dies". Name the person or system that acted.
++37. **Negative listing and dramatic fragments.** "It's not X. It's not Y. It's Z." and one-word fragments for weight ("Simple. Fast. Reliable."). State what it is.
++38. **Hedged symmetry.** "Whether you're a beginner or an expert", "While X is true, Y is also important". It addresses everyone and says nothing. Name the actual reader or cut it.
++39. **All-caps emphasis and scare quotes.** Don't shout clauses in caps or wrap ordinary words in quotes for emphasis or hedging. Put the emphasis in the sentence. Quotes are for real quotations, UI strings, and titles.
++40. **Speculative gap-filling.** "likely founded in...", "presumably to..." Don't invent facts to fill a gap. Mark the gap for the author.
++41. **Unstated relations.** Two sentences placed side by side with the link left implicit. Name it with "because", "although", "when", or "so".
++
++## How to apply
++
++- A pattern hit is a hypothesis, not a verdict. Keep a flagged word when it is the precise term. Don't flag curly quotes alone, one em dash alone, or one short sentence alone in human-written text.
++- If the user gives a writing sample, match its voice. Flag where it breaks these rules and ask before overriding it.
++- The rewrite must pass these same checks and keep every fact, caveat, and warning. Missing facts go back to the author. Never invent them.
++- Lint a file: `python3 scripts/ste_lint.py path/to/draft.md` (from this skill's directory). The score is heuristic violations per 100 words. Compare versions by score delta and inspect each hit, since code samples cause false positives.
+diff --git a/unslop/scripts/ste_lint.py b/unslop/scripts/ste_lint.py
+new file mode 100755
+index 0000000..929c06a
+--- /dev/null
++++ b/unslop/scripts/ste_lint.py
+@@ -0,0 +1,240 @@
++#!/usr/bin/env python3
++"""Report mechanical Simplified Technical English and AI-slop signals."""
++
++from __future__ import annotations
++
++import glob
++import json
++import os
++import re
++import sys
++
++MARKETING = [
++    "seamless",
++    "seamlessly",
++    "robust",
++    "powerful",
++    "cutting-edge",
++    "effortless",
++    "effortlessly",
++    "world-class",
++    "next-generation",
++    "revolutionary",
++    "blazing",
++    "lightning-fast",
++    "elegant",
++    "delightful",
++    "turnkey",
++    "best-in-class",
++    "state-of-the-art",
++    "game-changing",
++    "first-class",
++    "battle-tested",
++    "enterprise-grade",
++    "supercharge",
++    "unlock",
++    "unleash",
++    "empower",
++    "empowers",
++]
++BANNED = [
++    "begin",
++    "begins",
++    "commence",
++    "commences",
++    "initiate",
++    "initiates",
++    "originate",
++    "utilize",
++    "utilizes",
++    "utilizing",
++    "leverage",
++    "leverages",
++    "leveraging",
++    "facilitate",
++    "facilitates",
++    "ensure",
++    "ensures",
++    "ensuring",
++    "prior to",
++    "subsequent to",
++    "obtain",
++    "obtains",
++    "acquire",
++    "acquires",
++    "demonstrate",
++    "demonstrates",
++    "additionally",
++    "furthermore",
++    "moreover",
++    "comprehensive",
++    "comprehensively",
++    "utilization",
++    "aforementioned",
++    "henceforth",
++    "therein",
++    "whilst",
++    "amongst",
++    "numerous",
++    "myriad",
++    "plethora",
++    "in order to",
++    "a variety of",
++    "in the event that",
++    "due to the fact that",
++    "it is important to note",
++]
++PHRASAL = [
++    "spin up",
++    "spin down",
++    "reach out",
++    "dive into",
++    "dives into",
++    "diving into",
++    "kick off",
++    "kicks off",
++    "roll out",
++    "rolls out",
++    "tear down",
++    "ramp up",
++    "circle back",
++    "drill down",
++    "spun up",
++    "reaching out",
++]
++MODAL_HEDGE = [
++    "it is important to note",
++    "it should be noted",
++    "it is worth noting",
++    "please note that",
++    "as mentioned",
++    "as noted above",
++]
++BE = r"(?:am|is|are|was|were|be|been|being)"
++IRREGULAR_PARTICIPLE = (
++    r"(?:done|made|sent|read|built|kept|held|set|put|run|written|shown|given|"
++    r"taken|found|got|gotten|seen|known|thrown|drawn)"
++)
++
++
++def strip_code(text: str) -> str:
++    text = re.sub(r"```.*?```", " ", text, flags=re.S)
++    return re.sub(r"`[^`]*`", " ", text)
++
++
++def sentences(text: str) -> list[str]:
++    output: list[str] = []
++    for line in text.splitlines():
++        sentence = line.strip()
++        if not sentence:
++            continue
++        sentence = re.sub(r"^\s*#{1,6}\s*", "", sentence)
++        sentence = re.sub(r"^\s*(?:[-*+]|\d+[.)])\s+", "", sentence)
++        if not sentence:
++            continue
++        parts = re.split(r"(?<=[.!?:])\s+(?=[A-Z0-9\"'\-])", sentence)
++        output.extend(part.strip() for part in parts if part.strip())
++    return output
++
++
++def word_count(text: str) -> int:
++    return len(re.findall(r"[A-Za-z0-9][A-Za-z0-9'\-/]*", text))
++
++
++def count_phrases(text: str, phrases: list[str]) -> tuple[int, list[str]]:
++    count = 0
++    hits: list[str] = []
++    lowered = text.lower()
++    for phrase in phrases:
++        matches = list(
++            re.finditer(r"(?<![a-z])" + re.escape(phrase) + r"(?![a-z])", lowered)
++        )
++        count += len(matches)
++        hits.extend(phrase for _ in matches)
++    return count, hits
++
++
++def lint(text: str) -> dict[str, object]:
++    raw = text
++    text = strip_code(text)
++    parsed_sentences = sentences(text)
++    words = sum(word_count(sentence) for sentence in parsed_sentences) or 1
++    long_sentences = [
++        (word_count(sentence), sentence)
++        for sentence in parsed_sentences
++        if word_count(sentence) > 20
++    ]
++    violations: dict[str, int] = {
++        "long_sentence(>20w)": len(long_sentences),
++        "semicolon": text.count(";"),
++        "contraction": len(
++            re.findall(r"\b\w+['’](?:t|re|ve|ll|d|s|m)\b", text)
++        ),
++        "passive_voice": len(
++            re.findall(
++                rf"\b{BE}\s+(?:\w+ed|{IRREGULAR_PARTICIPLE})\b", text, re.I
++            )
++        ),
++        "ing_main_verb": len(re.findall(rf"\b{BE}\s+\w+ing\b", text, re.I)),
++        "nominalization": len(
++            re.findall(
++                r"\b(?:perform(?:s|ed)?|conduct(?:s|ed)?|provide(?:s|d)?|"
++                r"carry out|carries out|make use of|makes use of)\b",
++                text,
++                re.I,
++            )
++        )
++        + len(re.findall(r"\b\w{4,}(?:tion|ment|ance|ence)\s+of\b", text, re.I)),
++    }
++    violations["phrasal_verb"], _ = count_phrases(text, PHRASAL)
++    violations["banned_word"], banned_hits = count_phrases(text, BANNED)
++    violations["marketing_adjective"], marketing_hits = count_phrases(text, MARKETING)
++    violations["modal_hedge"], _ = count_phrases(text, MODAL_HEDGE)
++    paragraphs = [p for p in re.split(r"\n\s*\n", raw) if p.strip()]
++    violations["long_paragraph(>6s)"] = sum(
++        1 for paragraph in paragraphs if len(sentences(strip_code(paragraph))) > 6
++    )
++    total = sum(violations.values())
++    longest_sentence = max(
++        (word_count(sentence) for sentence in parsed_sentences), default=0
++    )
++    return {
++        "words": words,
++        "sentences": len(parsed_sentences),
++        "violations": violations,
++        "total": total,
++        "total_per100w": round(total * 100.0 / words, 2),
++        "em_dash(slop-marker)": raw.count("—") + raw.count("–"),
++        "longest_sentence_words": longest_sentence,
++        "sample_marketing": list(dict.fromkeys(marketing_hits))[:6],
++        "sample_banned": list(dict.fromkeys(banned_hits))[:6],
++    }
++
++
++def main(arguments: list[str]) -> int:
++    if not arguments:
++        print(json.dumps(lint(sys.stdin.read()), indent=2))
++        return 0
++
++    paths: list[str] = []
++    for argument in arguments:
++        if any(character in argument for character in "*?["):
++            paths.extend(sorted(glob.glob(argument)))
++        else:
++            paths.append(argument)
++
++    for path in paths:
++        with open(path, encoding="utf-8") as handle:
++            result = lint(handle.read())
++        print(
++            f"{os.path.basename(path):32} "
++            f"words={result['words']:4d} "
++            f"total={result['total']:3d} "
++            f"per100w={result['total_per100w']:6.2f} "
++            f"em_dash={result['em_dash(slop-marker)']:2d}"
++        )
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main(sys.argv[1:]))

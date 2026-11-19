@@ -1,0 +1,26 @@
+Why: Model-invocable; strict mode, define terms, never drop caveats, grounding and table rules (merged from STE/plain-writing skills).
+
+diff --git a/technical-writing/SKILL.md b/technical-writing/SKILL.md
+index 3e6d261..3effce9 100644
+--- a/technical-writing/SKILL.md
++++ b/technical-writing/SKILL.md
+@@ -1,7 +1,6 @@
+ ---
+ name: technical-writing
+-description: "Layered technical-writing standard: Diátaxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages."
+-disable-model-invocation: true
++description: "Use for READMEs, docs, runbooks, RFCs, PR descriptions, commit messages. Layered standard: Diataxis, Google style, STE, Global English."
+ ---
+ 
+ # Technical writing
+@@ -72,6 +71,10 @@ Don't mix modes: no reference tables inside a tutorial, no tutorial hand-holding
+ - Pick one word per action and stick to it: "start", not "start" here and "initiate" there.
+ - Write procedures as direct commands, never as narration and never in the passive: "Install the component", not "the component must be installed".
+ - Avoid "-ing" words where you can.
++- Strict mode for procedures, runbooks, safety text, and error messages: expand contractions, keep paragraphs to one topic and at most six sentences.
++- Define an unfamiliar term at its first use. Ground every concept before a later section relies on it: the reader either knew it coming in or met it earlier.
++- Never drop a caveat, limitation, warning, or exception to make the text shorter.
++- Use a table when the same fields repeat three or more times. Use prose when the items aren't parallel.
+ 
+ ## Leave no sentence open to two readings (Global English)
+ 

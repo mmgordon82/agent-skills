@@ -1,0 +1,79 @@
+Why: Typed-only /pfd; path-convention line for the flattened layout; version history cut; Codex openai.yaml.
+
+diff --git a/pfd/SKILL.md b/pfd/SKILL.md
+index b4944d7..650b5e6 100644
+--- a/pfd/SKILL.md
++++ b/pfd/SKILL.md
+@@ -1,14 +1,7 @@
+ ---
+ name: pfd
+-description: >
+-  This skill should be used when working on any design, marketing, copywriting, writing, or
+-  communication task — including: "run PFD", "apply PFD", "use Perception-First Design", "do a
+-  PFD analysis", "run the derivation protocol"; when designing interfaces, landing pages, emails,
+-  ads, or visual systems; when writing or reviewing marketing copy, headlines, CTAs, proposals,
+-  pitches, or presentations; when evaluating conversion problems, bounce rates, engagement, or
+-  persuasion; when doing brand work, content strategy, or any client communication; or whenever
+-  cognitive load, first impressions, processing fluency, trust, or decision architecture should
+-  inform the work.
++description: Perception-First Design analysis. Run only when the user types /pfd.
++disable-model-invocation: true
+ ---
+ 
+ # Perception-First Design (PFD): v0.7.0
+@@ -17,7 +10,7 @@ description: >
+ **Framework version:** 3.6 (2026-04-20). ~100 citations, international research integration, Methodology Siblings section, Cultural Calibration meta-rule, 7 new layer rules across L0–L4
+ **Source of truth:** `framework/PERCEPTION-FIRST-DESIGN.md` — when framework layer descriptions change, update this skill's layer summaries to match. Framework is canonical; this skill is derived.
+ **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). PFD™ is a trademark of Stefan Kovalik (USPTO serial 99686343). Practice exemption: applying PFD in your work doesn't trigger share-alike. See `LICENSE` and `NOTICE` in the plugin root.
+-**Path conventions:** All paths in this document are plugin-root-relative. Skill-local paths (`references/...`) resolve from this skill's directory; repo-level paths (`framework/...`, `corpus/...`) resolve from the plugin root.
++**Path conventions:** All paths are relative to this skill's directory (`references/`, `framework/`, `corpus/`, `commands/`, `scripts/`). Mode prompts: `commands/{evaluate,solve,analyze,all}.md`.
+ 
+ ---
+ 
+@@ -347,19 +340,3 @@ The corpus provides:
+ - PFD derivation (generating a design): Load `references/practitioner-corrections.md` + design system profile for constraint-setting
+ 
+ ---
+-
+-## Version History
+-
+-- **v0.7.0** (2026-04-28): Mode 3 (Analysis) added. New commands `/perception-first-design:analyze` (descriptive cascade for hypotheticals, mechanism questions, behavioral observations) and `/perception-first-design:all` (composite three-mode runner). Analysis Protocol formalized: 5 layer-cascade consequences with per-consequence stress-testing across four dimensions (user-population variation, adjacent infrastructure, precedents, time structure), plus integrative compounds (social aggregation, lock-in asymmetry, ecosystem cascade) and folded trade-offs. Mode detection extended: bare-skill activation now routes "what happens if X", "why is X working", and similar phrasing to Mode 3. SKILL.md "Two Modes" section renamed "Three Modes." Four anti-patterns added covering analyze-specific failure modes (slipping into solve mode, one-way effects when trade-offs exist, treating layers as siloed in analysis, shallow per-consequence depth). Spec calibrated against the URL-bar/Chrome thought experiment that produced an expert "wow" reaction in the v2.1 era; v0.6.0 solve compressed that question to a verdict, v0.7.0 analyze produces the descriptive cascade the question actually warranted.
+-- **v0.6.0** (2026-04-27): Marketplace-listing readiness. Plugin manifest at `.claude-plugin/plugin.json` (repo root) with spec-canonical component layout (`skills/`, `commands/`, `scripts/` at root — no nested `skill/` subdirectory). Marketplace catalog at `.claude-plugin/marketplace.json` enables self-hosted distribution alongside official Anthropic submission. Commands renamed: `pfd` → `solve` (Mode 2 derivation), `pfd-audit` → `evaluate` (Mode 1 corpus-backed audit) under `/perception-first-design:` namespace. Mode detection rules added — bare skill activation auto-routes between solve and evaluate based on input shape. 9 new atoms added (l021-l029) from the calibration campaign; `_index.md` regenerated to 29 atoms. `mvs-psychology-reference.md` added to skill references for skill-side quick lookup. License simplified to single CC BY-SA 4.0 with practice exemption (was dual MIT + CC BY-SA). NOTICE file at repo root with trademark terms + permitted/prohibited use examples. `.gitignore` for OS noise + private working files. Path conventions clarified. Corrections live in `references/practitioner-corrections.md` (single source of truth).
+-- **v0.5.0** (2026-04-21): Sharded learnings architecture. Migrated 20 accumulated learnings from monolithic `accumulated-learnings.md` to atom files under `references/learnings/` organized by primary layer (L0/L1/L2/L3/L4/meta/cross). Generated `_index.md` (human-readable) + `_search.json` (machine-readable) from atom YAML frontmatter via `scripts/gen-pfd-index.py`. SKILL.md loader updated for lazy-load — index-first scan, atoms read on demand. Scales to 1000+ learnings without per-activation cost blowup. Monolithic file retained as pointer for external-link compatibility. Framework v3.6 unchanged.
+-- **v0.4.0** (2026-04-20): Framework v3.6: international citation expansion. 17 new citations across 6 research traditions (DE/AT/CH, JP, CN, FR, NL/IL/Scandinavia). New Methodology Siblings section (Kansei/Nagamachi, Gestalt/Wertheimer+Metzger, neuroaesthetics/Skov+Nadal+Leder). Cultural Calibration meta-rule: architecture universal, calibration cultural; validate L1 and L3 against target-market users before cross-regional rollout. Seven new layer rules threaded into L0–L4 as active framework rules, not footnotes. Pre-verbal arousal empirical backbone strengthened (Hassin 2013, Pessiglione 2007, Mori 1970). Learning #20 added: International citation expansion. Master doc: 817 → 872 lines.
+-- **v0.3.9** (2026-04-16): Learning #19 added (Multi-Artifact Engagement Field and Relay-User Mode). Two convergent PFD Ralph Loops on a European enterprise prospect engagement surfaced the same structural gap — PFD's 5-layer stack assumes one artifact + buyer-in-front; B2B engagements are fields of artifacts evaluated by relay users. Candidate for L5 formalization in v0.4 after 2-3 more engagement validations. Related candidate observation (calendrical/timing layer) registered in insights log, not yet promoted.
+-- **v0.3.8** (2026-04-02): Unified objective statement added to "What PFD Is": pre-verbal arousal as the explicit goal of the 5-layer stack.
+-- **v0.3.7** (2026-03-16): Canonicalized layer numbering: Foundation (L0) → L1 → L2 → L3 → L4. Fixed off-by-one error (was L2-L5). No framework content changed — numbering alignment only.
+-- **v0.3.6** (2026-02-26): Learning #16 (near-miss color asymmetry). Framework v3.3: added Bujack et al. 2022 + Brainard 2022 (55 citations). L2 color qualifier (perceptual vs physical space, OKLCH). Design-token linting near-miss severity weighting. Skeptical analysis of "Schrödinger completed" headlines — cite non-additivity finding, not "completed" framing.
+-- **v0.3.4** (2026-02-25): Synced with framework v3.2 scholarly audit. 53 citations (5 new). Fixed Tractinsky 2006 mischaracterization, Miller 1956 body text, Zak 2015 hedge. WM 3-4→3-5 per Cowan 2010. Citation-standards.md updated with full audit log.
+-- **v0.3.0** (2026-02-24): Restructured plugin with proper directory layout. Skill description expanded to cover design, marketing, copywriting, writing, and communication. Learnings, citations, and PFD-S moved to references/ for progressive disclosure. `/pfd` command added.
+-- **v0.2.0** (2026-02-19): 9-expert PFD brainstorm synthesis. Added learnings #9-12: temporal/session continuity, constraints as distributions, visual channel audit, route vs survey knowledge.
+-- **v0.1.1** (2026-02-19): Added learnings #6-8 from product-level derivation.
+-- **v0.1** (2026-02-19): Initial proto. Derivation protocol, 5 layers, PFD-S, 5 accumulated learnings.
+diff --git a/pfd/agents/openai.yaml b/pfd/agents/openai.yaml
+new file mode 100644
+index 0000000..17b8a82
+--- /dev/null
++++ b/pfd/agents/openai.yaml
+@@ -0,0 +1,5 @@
++interface:
++  display_name: PFD
++  short_description: Perception-First Design analysis (run with /pfd)
++policy:
++  allow_implicit_invocation: false
+diff --git a/pfd/references/insights-log.md b/pfd/references/insights-log.md
+index d6cf027..329b931 100644
+--- a/pfd/references/insights-log.md
++++ b/pfd/references/insights-log.md
+@@ -18,3 +18,11 @@ the rest stay as searchable history.
+ ---
+ 
+ <!-- New entries go here, newest first -->
++
++### 2026-11-18 — Button label "Submit" (no surrounding context)
++**Type:** copy
++**Domain:** generic form CTA
++**Key finding:** "Submit" passes L0–L2 on familiarity but fails L4: it names the system's process, not the user's outcome, so the click carries no prediction of what happens next.
++**Layer(s):** L3/L4
++**Promote?:** maybe
++**Notes:** Isolated microcopy can't be fully scored: L1/L4 depend on what's being submitted and the commitment distance. Pattern: a generic-verb CTA leaves the outcome prediction unanswered (Clark 2013).

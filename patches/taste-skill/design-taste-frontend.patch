@@ -1,0 +1,36 @@
+Why: Typed-only (/design-taste-frontend): disable model invocation, short description, Codex openai.yaml with implicit invocation off.
+
+diff --git a/design-taste-frontend/SKILL.md b/design-taste-frontend/SKILL.md
+index 7dc7a9f..e5c63f6 100644
+--- a/design-taste-frontend/SKILL.md
++++ b/design-taste-frontend/SKILL.md
+@@ -1,16 +1,7 @@
+ ---
+ name: design-taste-frontend
+-description: >-
+-  tasteskill 2.5.1, the anti-slop frontend skill. Builds professional company websites at the level
+-  of figma.com and x.ai: plain copy in a voice of its own, one system, one section per screen,
+-  equal edges, real photographs and real product UI (licensed stand-in photographs when the client
+-  has none; a product render only when the brief asks for 3D), a hero entrance and one or two dealt
+-  moments on every page, shader effects and scenes only on tech, gaming and software pages, quiet
+-  micro-interactions, and a checker and finish gate that enforce it in a real browser. Use this
+-  whenever you build, design, redesign, restyle, polish or review a landing page, company,
+-  product, shop, cafe, hotel, studio, SaaS, AI, developer-tool or game site, as static HTML/CSS or
+-  inside an existing React, Next.js, Vue, Svelte, Astro or Tailwind project, or when the user says
+-  a page looks generic, templated or "AI-made".
++description: Taste-skill website builder (company, landing, product sites). Run only when the user types /design-taste-frontend.
++disable-model-invocation: true
+ hooks:
+   Stop:
+     - hooks:
+diff --git a/design-taste-frontend/agents/openai.yaml b/design-taste-frontend/agents/openai.yaml
+new file mode 100644
+index 0000000..6ecaa86
+--- /dev/null
++++ b/design-taste-frontend/agents/openai.yaml
+@@ -0,0 +1,5 @@
++interface:
++  display_name: Taste
++  short_description: Taste-skill website builder (run with /design-taste-frontend)
++policy:
++  allow_implicit_invocation: false

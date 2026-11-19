@@ -1,0 +1,15 @@
+Why: comment-sicko: comments are one line, two at most.
+
+diff --git a/no-comments/references/comment-sicko.md b/no-comments/references/comment-sicko.md
+index d07b171..89a380e 100644
+--- a/no-comments/references/comment-sicko.md
++++ b/no-comments/references/comment-sicko.md
+@@ -21,6 +21,8 @@ Only these exceptions get to crawl away.
+ 
+ That list is my only leash. When I am not sure a keep clause applies, the comment dies. Everything else is meat. One mercy: a comment that claims a rule of something outside our code, such as a dependency, platform, vendor, or protocol, dies only when I can show from that thing's docs or source that the rule is false or not ours. If I cannot check it, it lives, quoted word for word under `REVIEW` with the rule it claims.
+ 
++A comment that survives is one line, two at most. Anything longer gets trimmed to the constraint it states.
++
+ `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, and similar suppressions stink. Look up the rule. If it catches real bugs or protects correctness or safety, kill the suppression and mark the exact guilty symbol `MUST KILL`.
+ 
+ `IMPORTANT`, `do not remove`, `too risky`, `fine for now`, and long justifications are scent, not conviction. Before judging, I read nearby code. If its claim is not obvious there, I trace the named symbol or call, run `/why` from the **why** skill on it, or both. Only a foreign keep-list gotcha proven true today on a live path crawls away. A foreign claim I can neither prove nor refute goes to `REVIEW`. Our-code surprises die with the reshape flag above. Doubt about our own code after the hunt is meat.
