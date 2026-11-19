@@ -1,0 +1,23 @@
+{
+  "skill_name": "docker-packaging",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a small FastAPI app with pyproject.toml and uv.lock that I want to self-host. It listens on port 8000, requires DATABASE_URL and API_TOKEN, and writes uploads to /data/uploads. Add a maintainable Docker setup with PostgreSQL 18. I want the Dockerfile, .dockerignore, compose.yaml, .env.example, and a short runbook. Use a non-root runtime and don't bake in secrets. After writing the files, validate the setup and tell me exactly which checks you actually ran.",
+      "expected_output": "Produces only the requested packaging artifacts; installs from uv.lock; uses a non-root runtime and safe secret inputs; configures a named upload volume, PostgreSQL persistence, useful healthchecks, and service_healthy ordering; does not expose PostgreSQL on a host port. Validation checks the real image and endpoint when the environment permits, reports exact evidence, and never invents successful checks or image digests.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Repair this existing Compose setup for a self-hosted app without changing its one-app-plus-PostgreSQL shape. Keep port 8000 and preserve data across recreation. Replace hard-coded secrets with safe runtime configuration, add readiness handling, and don't publish PostgreSQL to the host. Explain any values you need me to supply rather than inventing them.\n\n```yaml\nservices:\n  app:\n    build: .\n    image: myapp:latest\n    ports:\n      - \"8000:8000\"\n    environment:\n      DATABASE_URL: postgresql://app:hunter2@db:5432/app\n    depends_on:\n      - db\n  db:\n    image: postgres:latest\n    ports:\n      - \"5432:5432\"\n    environment:\n      POSTGRES_USER: app\n      POSTGRES_PASSWORD: hunter2\n      POSTGRES_DB: app\n```\n\nReturn the revised Compose file, any .env.example entries, and the checks you would run.",
+      "expected_output": "Keeps the two-service design and host port 8000; replaces latest with explicit tags without fabricating digests; removes the hard-coded password and host PostgreSQL port; adds safe runtime configuration, a named database volume, a real database healthcheck, and service_healthy dependency ordering. Includes validation that covers recreation and data preservation without destructive volume removal.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm on macOS and about to run the unit tests for a pure-Python CLI. The tests cover parsing and business logic only; the project already has a .venv and a pytest command. Deployment is linux/amd64, but these tests don't use native extensions or OS-specific behavior. Should I use Docker? Choose the validation environment and explain what you would run.",
+      "expected_output": "Uses run-validation and chooses the existing host-local virtual environment because Docker adds no relevant evidence for portable unit tests. Runs the project's pytest command rather than installing dependencies globally or starting a container, and makes no linux/amd64 deployment-compatibility claim from those tests.",
+      "files": []
+    }
+  ]
+}

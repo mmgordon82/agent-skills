@@ -175,6 +175,7 @@ def verify(against: Annotated[Path, typer.Option(help="Installed skills dir to c
             a, b = out / skill, against / skill
             if not b.exists():
                 t.add_row(skill, "[yellow]not installed[/]")
+                bad += 1
                 continue
             fa, fb = files(a), files(b)
             changed = sorted(f for f in fa & fb if not filecmp.cmp(a / f, b / f, shallow=False))

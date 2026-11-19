@@ -27,7 +27,7 @@ Safe, reversible schema changes for production systems.
 
 Before applying any migration:
 
-- [ ] Migration has both UP and DOWN (or is explicitly marked irreversible)
+- [ ] Production rollback/recovery is a new forward migration; DOWN files, if present, are for development only
 - [ ] Lock modes and expected hold times reviewed; concurrent operations used where supported
 - [ ] On populated tables, new columns are nullable or have defaults compatible with their constraints
 - [ ] Indexes created concurrently (not inline with CREATE TABLE for existing tables)
@@ -147,7 +147,8 @@ ALTER TABLE orders DROP COLUMN legacy_status;
 -- BAD: updates all rows in one transaction (locks table)
 UPDATE users SET normalized_email = LOWER(email);
 
--- GOOD: batch update with progress
+-- GOOD: batch update with progress in a top-level, non-atomic migration
+-- No surrounding BEGIN; do not run with psql --single-transaction.
 DO $$
 DECLARE
   batch_size INT := 10000;
@@ -169,6 +170,8 @@ BEGIN
   END LOOP;
 END $$;
 ```
+
+PostgreSQL 11+ permits `COMMIT` in a top-level `DO` command. A surrounding transaction or an atomic migration runner rejects it with `invalid transaction termination`; use a non-atomic migration for this pattern. Run the [self-checking SQL example](examples/postgres-batch-backfill.sql) with `psql -X -v ON_ERROR_STOP=1 -f examples/postgres-batch-backfill.sql`; it verifies multiple committed batches and the final empty batch.
 
 ## Django (Python)
 
