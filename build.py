@@ -224,24 +224,49 @@ def diff(
 
 
 @app.command()
-def bump(upstream: str, rev: Annotated[str | None, typer.Argument(help="Commit sha; default: remote HEAD")] = None) -> None:
-    """Move an upstream's pin, show what changed under its paths, and check which patches still apply."""
+def bump(
+    names: Annotated[list[str] | None, typer.Argument(help="Upstreams to bump; default: all")] = None,
+    rev: Annotated[str | None, typer.Option(help="Commit sha for a single upstream; default: remote HEAD")] = None,
+) -> None:
+    """Move pins to upstream HEAD (or --rev). A pin moves only if all its patches still apply; exits 1 if any was held back."""
     ups = load()
-    u = ups[upstream]
-    new = rev or git("ls-remote", f"https://github.com/{u.repo}", "HEAD").split()[0]
-    git("fetch", "-q", "origin", cwd=checkout(u))
-    new = git("rev-parse", f"{new}^{{commit}}", cwd=u.cache).strip()
-    log = git("log", "--oneline", f"{u.rev}..{new}", "--", *u.paths.values(), cwd=u.cache)
-    console.print(f"{u.repo}: {u.rev[:7]} → {new[:7]}, {len(log.splitlines())} commits touch our paths\n{log}")
+    names = names or list(ups)
+    if unknown := set(names) - set(ups):
+        console.print(f"[red]unknown upstream {', '.join(unknown)}; have: {', '.join(ups)}[/]")
+        raise typer.Exit(1)
+    if rev and len(names) != 1:
+        console.print("[red]--rev needs exactly one upstream[/]")
+        raise typer.Exit(1)
     doc = tomlkit.parse(UPSTREAMS.read_text())
-    doc[upstream]["rev"] = new
+    held = []
+    for name in names:
+        u = ups[name]
+        new = rev or git("ls-remote", f"https://github.com/{u.repo}", "HEAD").split()[0]
+        git("fetch", "-q", "origin", cwd=checkout(u))
+        new = git("rev-parse", f"{new}^{{commit}}", cwd=u.cache).strip()
+        if new == u.rev:
+            console.print(f"{name}: up to date @{new[:7]}")
+            continue
+        log = git("log", "--oneline", f"{u.rev}..{new}", "--", *u.paths.values(), cwd=u.cache)
+        console.print(f"{name}: {u.rev[:7]} → {new[:7]}, {len(log.splitlines())} commits touch our paths\n{log}")
+        out = staging()
+        try:
+            ok = show(build_into(out, {name: u.model_copy(update={"rev": new})}))
+        except GitError as e:  # e.g. upstream moved a mapped folder
+            console.print(f"[red]{name}: {e}[/]")
+            ok = False
+        finally:
+            shutil.rmtree(out, ignore_errors=True)
+        if ok:
+            doc[name]["rev"] = new
+        else:
+            held.append(name)
     UPSTREAMS.write_text(tomlkit.dumps(doc))
-    out = staging()
-    try:
-        ok = show(build_into(out, load()))
-    finally:
-        shutil.rmtree(out, ignore_errors=True)
-    console.print("[green]all patches apply; run build[/]" if ok else "[red]fix the failing patches (edit dist/, then `diff`), or revert upstreams.toml[/]")
+    if held:
+        console.print(f"[red]held back {', '.join(held)}: patches don't apply at the new commit. Rebase them by hand "
+                      f"(git apply --3way in a checkout of the new commit), then `bump <name> --rev <sha>`.[/]")
+        raise typer.Exit(1)
+    console.print("[green]pins updated; run build[/]")
 
 
 @app.command()
