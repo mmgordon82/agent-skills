@@ -1,6 +1,6 @@
 ---
 name: impeccable
-description: Use for frontend design and UI implementation: new interfaces, redesigns, UI fixes, critique, audits, polish, and Impeccable design commands. Not for backend-only work.
+description: "Use for frontend design and UI implementation: new interfaces, redesigns, UI fixes, critique, audits, polish, and Impeccable design commands. Not for backend-only work."
 metadata:
   version: "3.9.1"
 ---

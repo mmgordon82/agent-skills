@@ -1,6 +1,6 @@
 ---
 name: web-perimeter-audit
-description: Use when auditing a live or staging web domain's perimeter before launch, or hardening nginx/Caddy/CDN edge config. Passive, non-destructive curl probes mapped to OWASP Top 10:2025 leads: exposed .git/.env/compose/lockfiles, CORS reflection, cache poisoning (X-Forwarded-Host), HSTS/CSP, cookie flags, stack-trace leaks, security.txt.
+description: "Use when auditing a live or staging web domain's perimeter before launch, or hardening nginx/Caddy/CDN edge config. Passive, non-destructive curl probes mapped to OWASP Top 10:2025 leads: exposed .git/.env/compose/lockfiles, CORS reflection, cache poisoning (X-Forwarded-Host), HSTS/CSP, cookie flags, stack-trace leaks, security.txt."
 ---
 
 # Web perimeter audit (OWASP Top 10:2025 surface leads)
