@@ -1,0 +1,5 @@
+interface:
+  display_name: "Skill critique"
+  short_description: "Measure and trim session-start load (run with /skill-critique)"
+policy:
+  allow_implicit_invocation: false
