@@ -20,3 +20,14 @@ The invocation cut of splitting (the sequence cut lives in `SKILL.md`): split of
 ## Router skills
 
 When user-invoked skills multiply past what you can remember, that piled-up cognitive load is cured by a **router skill**: one user-invoked skill that names the others and when to reach for each, so the human has one skill to remember instead of many. It can only hint, never fire them: user-invoked skills have no description, so nothing but the human can reach them.
+
+## Across agents
+
+One skill folder loads in Claude Code, Codex, Grok, Kimi Code and Pi, and their loaders differ:
+
+- **Codex shows about 80 characters of the description.** The leading word has to sit inside them.
+- **Quote a description that contains `: `.** `description: Use for X: Y` is invalid YAML. Claude Code tolerates it; strict loaders drop the skill without a word.
+- **User-invoked takes two settings.** `disable-model-invocation: true` covers Claude Code, Grok, Kimi Code and Pi. Codex ignores it and needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`.
+- **A must-fire skill also gets a line in `AGENTS.md`** naming its `SKILL.md` path. A one-line rule plus the path fires more reliably than the description alone.
+- **A must-read reference file gets a bold line at the top of `SKILL.md`**, with when to read it. A mention in passing gets skipped.
+- **One copy on disk.** The real folder lives in `~/.agents/skills` and every agent's skills dir links to it; copies drift.
