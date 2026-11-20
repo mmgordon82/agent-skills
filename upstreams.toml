@@ -4,7 +4,7 @@
 [pstack]
 license_file = "LICENSE"
 repo = "backnotprop/pstack"
-rev = "059190ea76d062acc19b9d733e9096d7be35081c"
+rev = "0d2dc00df47d7686c94324cfe9c3444710d9f16d"
 license = "MIT"
 paths = { architect = "skills/architect", arena = "skills/arena", no-comments = "skills/no-comments", poteto-mode = "skills/poteto-mode", reflect = "skills/reflect", setup-pstack = "skills/setup-pstack", swarm = "skills/swarm", technical-writing = "skills/technical-writing", unslop = "skills/unslop" }
 

@@ -1,4 +1,11 @@
-Why: Shorter, trigger-first description.
+Why: A trigger-first description.
+
+Problem: Codex shows about 80 characters of a description. Upstream's starts with "Writing documents
+for agents.", so the words that should trigger it (skills, AGENTS.md, CLAUDE.md) fall after the cut.
+
+Change: description "Use when creating or editing skills, AGENTS.md, or CLAUDE.md."
+
+Reapply: if upstream's description now starts with its trigger words, drop this patch.
 
 diff --git a/writing-for-agents/SKILL.md b/writing-for-agents/SKILL.md
 index a37608d..ce81994 100644

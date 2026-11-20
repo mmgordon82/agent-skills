@@ -1,4 +1,15 @@
-Why: Typed-only (/design-taste-frontend): disable model invocation, short description, Codex openai.yaml with implicit invocation off.
+Why: Typed-only /design-taste-frontend with a one-line description, in Claude and in Codex.
+
+Problem: upstream's description is about 1,000 characters listing every kind of site. It loads into
+every session (about 230 tokens) and triggers on any web work, where it competes with impeccable,
+our lead UI skill.
+
+Change: a one-line description; `disable-model-invocation: true`; agents/openai.yaml with
+`policy: allow_implicit_invocation: false` so Codex treats it as typed-only too.
+
+Keep when rebasing: everything else, including the skill's own Stop hook (finish gate).
+
+Reapply: replace the description, add the frontmatter flag, re-add agents/openai.yaml.
 
 diff --git a/design-taste-frontend/SKILL.md b/design-taste-frontend/SKILL.md
 index 7dc7a9f..e5c63f6 100644

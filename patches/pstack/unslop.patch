@@ -1,7 +1,28 @@
-Why: Model-invocable; trigger-first description; rules #34-41 + 'How to apply' + scripts/ste_lint.py merged from stop-slop/anti-slop/STE skills.
+Why: Let the model invoke it, with a trigger-first description; add rules 34-41 and "How to apply" from three deleted anti-slop skills, plus an STE lint script.
+
+Problem: upstream ships it typed-only, so agents don't check their prose unless asked. We deleted
+three overlapping skills (stop-slop, anti-slop-writing, an STE skill); their rules that unslop
+lacks live here now.
+
+Change:
+- Frontmatter: description "Use when writing or reviewing prose (docs, PRs, commits, issues, UI
+  copy) to cut AI tells."; `disable-model-invocation` removed.
+- Rules 34-41 after upstream's last rule, in upstream's current style (terse one-liners since
+  0.15.43): throat-clearing openers, emphasis crutches and meta-commentary, false agency, negative
+  listing and dramatic fragments, hedged symmetry, all-caps and scare quotes, speculative
+  gap-filling, unstated relations between sentences.
+- "How to apply": a hit is a hypothesis, not a verdict; match a user's sample voice; keep every
+  fact, caveat and warning; the lint command.
+- scripts/ste_lint.py: heuristic Simplified Technical English lint, violations per 100 words.
+
+Keep when rebasing: rule numbers are ids other skills cite. Never renumber upstream's. If upstream
+adds rules numbered 34 or higher, number ours after theirs and search other skills for citations.
+
+Reapply: frontmatter, then our rules at the end of the numbered list in upstream's style, then the
+"How to apply" section, then the script (it never conflicts).
 
 diff --git a/unslop/SKILL.md b/unslop/SKILL.md
-index 97f5b64..ef56ac1 100644
+index 583fe48..12ae967 100644
 --- a/unslop/SKILL.md
 +++ b/unslop/SKILL.md
 @@ -1,7 +1,6 @@
@@ -13,41 +34,18 @@ index 97f5b64..ef56ac1 100644
  ---
  
  # Unslop
-@@ -19,8 +18,8 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
- 
- ### Language
- 
--7. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Replace with plain words.
--8. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Say "is" or "has".
-+7. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Marketing adjectives too: seamless, robust, powerful, cutting-edge, world-class, revolutionary, game-changer, empower, unlock. Business phrasal verbs: navigate, unpack, lean into, double down, deep dive, circle back, moving forward. Replace with plain words.
-+8. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Say "is" or "has". Keep the verb when it enumerates, defines, or locates: "the retry policy serves three failure modes: ...".
- 9. **"Not just X, but Y."** State the point directly instead.
- 10. **Rule of three.** Don't force ideas into groups of three. Use the natural number.
- 11. **Synonym cycling.** Protagonist, main character, central figure, hero all in one paragraph. Pick one, repeat it.
-@@ -45,7 +44,7 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
- 
- 23. **Filler phrases.** "In order to" becomes "To". "Due to the fact that" becomes "Because". Delete "It is important to note that".
- 24. **Excessive hedging.** "could potentially possibly be argued that it might" becomes "may".
--25. **Generic conclusions.** "The future looks bright." State specific plans or facts.
-+25. **Generic conclusions.** "The future looks bright.", "Despite ongoing challenges, X continues to thrive.", "Looking ahead, X will play a pivotal role." State specific plans or facts.
- 
- ### Jargon
- 
-@@ -60,3 +59,21 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
- 31. **Prefer the plain word.** "utilize" and "leverage" become "use", "facilitate" becomes "help", "numerous" becomes "many", "in the event that" becomes "if". The fancier synonym is rarely clearer.
- 32. **Mannered prose.** Metaphor or flourish where a literal phrase exists: aphorisms ("wire it or delete it"), rhetorical fragments for effect, personified code ("the plan holds it"), figurative verbs ("rides along", "stands on"), stock framing phrases. "A dial worth turning" becomes "a parameter worth varying". Say what you mean. Rule 26 covers the metaphor nouns.
- 33. **Over-compression.** Dropped articles, verbless fragments, symbol-speak, and abbreviations that make the reader decode instead of read. "Parser rejects bad date → exit 2, no write" becomes "The parser rejects a bad date, exits with code 2, and writes nothing." Write whole sentences with their articles and verbs, and spell out arrows and abbreviations.
-+
-+### Added rules
-+
-+34. **Throat-clearing openers.** "Here's the thing", "Here's why", "It turns out", "The truth is", "Let me be clear", "The real X is". Cut the opener and state the point.
-+35. **Emphasis crutches and meta-commentary.** "Let that sink in.", "Full stop.", "Make no mistake", "This matters because", "It's worth noting", "At its core", "At the end of the day". Delete them.
-+36. **False agency.** An inanimate subject with a human verb: "the decision emerged", "complaints became fixes", "the bet lives or dies". Name the person or system that acted.
-+37. **Negative listing and dramatic fragments.** "It's not X. It's not Y. It's Z." and one-word fragments for weight ("Simple. Fast. Reliable."). State what it is.
-+38. **Hedged symmetry.** "Whether you're a beginner or an expert", "While X is true, Y is also important". It addresses everyone and says nothing. Name the actual reader or cut it.
-+39. **All-caps emphasis and scare quotes.** Don't shout clauses in caps or wrap ordinary words in quotes for emphasis or hedging. Put the emphasis in the sentence. Quotes are for real quotations, UI strings, and titles.
-+40. **Speculative gap-filling.** "likely founded in...", "presumably to..." Don't invent facts to fill a gap. Mark the gap for the author.
-+41. **Unstated relations.** Two sentences placed side by side with the link left implicit. Name it with "because", "although", "when", or "so".
+@@ -38,3 +37,18 @@ Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
+ 31. Use the plain word: "use", not "utilize" or "leverage".
+ 32. No metaphor, aphorism, personified code, or figurative verb where a literal phrase exists.
+ 33. Write whole sentences with their articles and verbs. Spell out arrows and abbreviations.
++34. No throat-clearing openers ("Here's the thing", "It turns out", "The truth is"). State the point.
++35. No emphasis crutches or meta-commentary ("Let that sink in.", "Full stop.", "It's worth noting", "At its core"). Delete them.
++36. No false agency: an inanimate subject with a human verb ("the decision emerged", "the bet lives or dies"). Name who or what acted.
++37. No negative listing or dramatic fragments ("It's not X. It's not Y. It's Z.", "Simple. Fast. Reliable."). State what it is.
++38. No hedged symmetry ("Whether you're a beginner or an expert"). Name the actual reader or cut it.
++39. No all-caps emphasis or scare quotes. Quotes are for real quotations, UI strings, and titles.
++40. Don't fill a gap with speculation ("likely founded in...", "presumably to..."). Mark the gap for the author.
++41. Name the relation between neighboring sentences: "because", "although", "when", "so".
 +
 +## How to apply
 +

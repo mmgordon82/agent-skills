@@ -1,4 +1,16 @@
-Why: comment-sicko: comments are one line, two at most.
+Why: Comments that survive are one line, two at most.
+
+Problem: the comment-sicko reviewer deletes comments that restate code, but long explanatory
+comments survive it. Our rule (AGENTS.md: "Comment only what isn't obvious; keep comments short")
+is about length too.
+
+Change: one paragraph in references/comment-sicko.md: a surviving comment is one line, two at most,
+and anything longer is trimmed to the constraint it states.
+
+Keep when rebasing: upstream's criteria for which comments survive; ours only caps their length.
+
+Reapply: add the paragraph right after the reviewer's rules for what may stay. If upstream adds its
+own length rule, drop this patch.
 
 diff --git a/no-comments/references/comment-sicko.md b/no-comments/references/comment-sicko.md
 index d07b171..89a380e 100644

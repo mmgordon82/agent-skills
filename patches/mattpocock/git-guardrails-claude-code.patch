@@ -1,4 +1,17 @@
-Why: Add scripts/block-weakened-checks.sh: block --no-verify and edits to existing lint/format configs (idea from everything-claude-code).
+Why: Add block-weakened-checks.sh: block --no-verify and edits to lint, format and pre-commit configs.
+
+Problem: under pressure an agent skips git hooks (`--no-verify`) or loosens a linter config instead
+of fixing the code. Upstream's hook blocks destructive git commands only. The idea comes from
+everything-claude-code.
+
+Change: scripts/block-weakened-checks.sh, an optional second PreToolUse hook that blocks
+`git commit/push --no-verify` and `git commit -n`, and edits to existing ruff, eslint, prettier,
+biome and pre-commit configs. ALLOW_CONFIG_EDIT=1 overrides it for a deliberate change. One paragraph
+in SKILL.md says how to wire it.
+
+Keep when rebasing: upstream's hook untouched; ours is a separate script.
+
+Reapply: re-add the script and the paragraph after upstream's hook setup steps.
 
 diff --git a/git-guardrails-claude-code/SKILL.md b/git-guardrails-claude-code/SKILL.md
 index 58bcdd8..c8f3395 100644

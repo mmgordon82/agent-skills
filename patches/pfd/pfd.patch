@@ -1,4 +1,19 @@
-Why: Typed-only /pfd; path-convention line for the flattened layout; version history cut; Codex openai.yaml.
+Why: Typed-only /pfd, paths fixed for the flattened layout, version history cut, Codex typed-only.
+
+Problem: upstream is a plugin: skills/pfd plus repo-level framework/, corpus/, commands/ and scripts/.
+upstreams.toml flattens them into one skill dir, which breaks its plugin-root-relative paths. Its
+long description triggers on any design or copy task and loads every session, and the SKILL.md
+carries a version history the agent reads on every use.
+
+Change: a one-line description and `disable-model-invocation: true`; the path-conventions line says
+every path is relative to this skill's dir; the Version History section is deleted;
+agents/openai.yaml makes it typed-only in Codex.
+
+Keep when rebasing: the CC BY-SA 4.0 license and NOTICE (copied by upstreams.toml). Share-alike
+applies to this patch.
+
+Reapply: frontmatter, the path-conventions line, delete the version history, re-add openai.yaml. If
+upstream adds top-level dirs that SKILL.md references, add them to `paths` in upstreams.toml.
 
 diff --git a/pfd/SKILL.md b/pfd/SKILL.md
 index b4944d7..650b5e6 100644

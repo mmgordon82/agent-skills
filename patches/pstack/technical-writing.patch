@@ -1,7 +1,25 @@
-Why: Model-invocable; strict mode, define terms, never drop caveats, grounding and table rules (merged from STE/plain-writing skills).
+Why: Let the model invoke it, with a trigger-first description, and add four rules from the deleted STE and plain-writing skills.
+
+Problem: upstream ships it typed-only (/technical-writing), so agents write READMEs, PR bodies and
+runbooks without it unless someone types the command. We also deleted two separate writing skills
+(Simplified Technical English, plain writing) and moved the rules they had that this one lacks here.
+
+Change:
+- Frontmatter: description starts with the trigger words ("Use for READMEs, docs, runbooks, RFCs,
+  PR descriptions, commit messages."); `disable-model-invocation` removed.
+- Four bullets in the STE sentence-rules list: strict mode for procedures, runbooks, safety text and
+  errors (no contractions, short single-topic paragraphs); define a term at first use and ground
+  every concept before it's relied on; never drop a caveat to shorten text; a table when the same
+  fields repeat three or more times, prose otherwise.
+
+Keep when rebasing: upstream's layers and wording. If upstream adds a rule that covers one of ours,
+drop ours.
+
+Reapply: the frontmatter change, then the four bullets at the end of the list of sentence-level STE
+rules, in upstream's current style.
 
 diff --git a/technical-writing/SKILL.md b/technical-writing/SKILL.md
-index 3e6d261..3effce9 100644
+index 6f53776..a13adfe 100644
 --- a/technical-writing/SKILL.md
 +++ b/technical-writing/SKILL.md
 @@ -1,7 +1,6 @@
@@ -13,9 +31,9 @@ index 3e6d261..3effce9 100644
  ---
  
  # Technical writing
-@@ -72,6 +71,10 @@ Don't mix modes: no reference tables inside a tutorial, no tutorial hand-holding
- - Pick one word per action and stick to it: "start", not "start" here and "initiate" there.
- - Write procedures as direct commands, never as narration and never in the passive: "Install the component", not "the component must be installed".
+@@ -50,6 +49,10 @@ One document, one mode. Don't mix modes. Split and link instead.
+ - Give each word one meaning, and pick one word per action.
+ - Write procedures as direct commands, never as narration and never in the passive.
  - Avoid "-ing" words where you can.
 +- Strict mode for procedures, runbooks, safety text, and error messages: expand contractions, keep paragraphs to one topic and at most six sentences.
 +- Define an unfamiliar term at its first use. Ground every concept before a later section relies on it: the reader either knew it coming in or met it earlier.
