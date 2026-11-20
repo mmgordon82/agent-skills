@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="t">
-<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install for five agents</title>
+<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install for 75 agents</title>
 <style>
   .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
   .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
@@ -85,7 +85,7 @@
 <text x="928" y="119" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >26 skills, or a weekly release</text>
 <rect x="910" y="192" width="250" height="74" rx="10" fill="#151b23" stroke="#30363d"/>
 <text x="928" y="220" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >npx skills add</text>
-<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >…#release · 5 agents</text>
+<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >…#release · 75 agents</text>
 <rect x="910" y="312" width="250" height="74" rx="10" fill="#151b23" stroke="#30363d"/>
 <text x="928" y="340" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >build.py install</text>
 <text x="928" y="362" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >maintainer: live links to dist/</text>

@@ -11,7 +11,7 @@
 # AND: installed when `home` and every check_dir exist and every check_binary is on PATH.
 # OR:  installed when any one of them is true.
 # Detection never depends on skills, so agents with no skills loaded still show up.
-# Ids match npx skills (github.com/vercel-labs/skills).
+# Ids match npx skills (github.com/vercel-labs/skills). Refresh the npx section with tools/npx_agents.py.
 
 # ---- Verified here: detection, skill dirs and quirks checked against each agent ----
 
@@ -42,3 +42,366 @@ label = "Pi"
 home = "~/.pi/agent"
 skills = "~/.agents/skills"
 check_binary = ["pi"]
+
+# ---- From npx skills 1.9.0's agent table: detection translated from its source (project-only
+# checks dropped). Measured with /skill-critique's generic rules. ----
+
+[agents.adal]
+label = "AdaL"
+home = "~/.adal"
+skills = "~/.adal/skills"
+
+[agents.aider-desk]
+label = "AiderDesk"
+home = "~/.aider-desk"
+skills = "~/.aider-desk/skills"
+
+[agents.amp]
+label = "Amp"
+home = "~/.config/amp"
+skills = "~/.config/agents/skills"
+
+[agents.antigravity]
+label = "Antigravity"
+home = "~/.gemini/antigravity"
+skills = "~/.gemini/config/skills"
+
+[agents.antigravity-cli]
+label = "Antigravity CLI"
+home = "~/.gemini/antigravity-cli"
+skills = "~/.gemini/config/skills"
+
+[agents.astrbot]
+label = "AstrBot"
+home = "~/.astrbot"
+skills = "~/.astrbot/data/skills"
+
+[agents.augment]
+label = "Augment"
+home = "~/.augment"
+skills = "~/.augment/skills"
+
+[agents.autohand-code]
+label = "Autohand Code CLI"
+home = "~/.autohand"
+skills = "~/.autohand/skills"
+
+[agents.bob]
+label = "IBM Bob"
+home = "~/.bob"
+skills = "~/.bob/skills"
+
+[agents.cline]
+label = "Cline"
+home = "~/.cline"
+skills = "~/.agents/skills"
+
+[agents.codearts-agent]
+label = "CodeArts Agent"
+home = "~/.codeartsdoer"
+skills = "~/.codeartsdoer/skills"
+
+[agents.codebuddy]
+label = "CodeBuddy"
+home = "~/.codebuddy"
+skills = "~/.codebuddy/skills"
+
+[agents.codemaker]
+label = "Codemaker"
+home = "~/.codemaker"
+skills = "~/.codemaker/skills"
+
+[agents.codestudio]
+label = "Code Studio"
+home = "~/.codestudio"
+skills = "~/.codestudio/skills"
+
+[agents.command-code]
+label = "Command Code"
+home = "~/.commandcode"
+skills = "~/.commandcode/skills"
+
+[agents.continue]
+label = "Continue"
+home = "~/.continue"
+skills = "~/.continue/skills"
+
+[agents.cortex]
+label = "Cortex Code"
+home = "~/.snowflake/cortex"
+skills = "~/.snowflake/cortex/skills"
+
+[agents.crush]
+label = "Crush"
+home = "~/.config/crush"
+skills = "~/.config/crush/skills"
+
+[agents.cursor]
+label = "Cursor"
+home = "~/.cursor"
+skills = "~/.cursor/skills"
+
+[agents.deepagents]
+label = "Deep Agents"
+home = "~/.deepagents"
+skills = "~/.deepagents/agent/skills"
+
+[agents.devin]
+label = "Devin for Terminal"
+home = "~/.config/devin"
+skills = "~/.config/devin/skills"
+
+[agents.dexto]
+label = "Dexto"
+home = "~/.dexto"
+skills = "~/.agents/skills"
+
+[agents.droid]
+label = "Droid"
+home = "~/.factory"
+skills = "~/.factory/skills"
+
+[agents.firebender]
+label = "Firebender"
+home = "~/.firebender"
+skills = "~/.firebender/skills"
+
+[agents.forgecode]
+label = "ForgeCode"
+home = "~/.forge"
+skills = "~/.forge/skills"
+
+[agents.fx]
+label = "fx"
+home = "~/.fx"
+skills = "~/.agents/skills"
+
+[agents.gemini-cli]
+label = "Gemini CLI"
+home = "~/.gemini"
+skills = "~/.gemini/skills"
+
+[agents.github-copilot]
+label = "GitHub Copilot"
+home = "~/.copilot"
+skills = "~/.copilot/skills"
+
+[agents.goose]
+label = "Goose"
+home = "~/.config/goose"
+skills = "~/.config/goose/skills"
+
+[agents.hermes-agent]
+label = "Hermes Agent"
+home = "~/.hermes"
+skills = "~/.hermes/skills"
+
+[agents.iflow-cli]
+label = "iFlow CLI"
+home = "~/.iflow"
+skills = "~/.iflow/skills"
+
+[agents.inference-sh]
+label = "inference.sh"
+home = "~/.inferencesh"
+skills = "~/.inferencesh/skills"
+
+[agents.jazz]
+label = "Jazz"
+home = "~/.jazz"
+skills = "~/.jazz/skills"
+
+[agents.junie]
+label = "Junie"
+home = "~/.junie"
+skills = "~/.junie/skills"
+
+[agents.kilo]
+label = "Kilo Code"
+home = "~/.kilo"
+skills = "~/.kilo/skills"
+check_dir = ["~/.kilocode"]
+check_boolean_operator = "OR"
+
+[agents.kimchi]
+label = "Kimchi"
+home = "~/.config/kimchi"
+skills = "~/.config/kimchi/harness/skills"
+
+[agents.kiro-cli]
+label = "Kiro CLI"
+home = "~/.kiro"
+skills = "~/.kiro/skills"
+
+[agents.kode]
+label = "Kode"
+home = "~/.kode"
+skills = "~/.kode/skills"
+
+[agents.lingma]
+label = "Lingma"
+home = "~/.lingma"
+skills = "~/.lingma/skills"
+
+[agents.loaf]
+label = "Loaf"
+home = "~/.loaf"
+skills = "~/.agents/skills"
+
+[agents.mcpjam]
+label = "MCPJam"
+home = "~/.mcpjam"
+skills = "~/.mcpjam/skills"
+
+[agents.minimax-code]
+label = "MiniMax Code"
+home = "~/.minimax"
+skills = "~/.minimax/skills"
+check_dir = ["/Applications/MiniMax Code.app"]
+check_boolean_operator = "OR"
+
+[agents.mistral-vibe]
+label = "Mistral Vibe"
+home = "~/.vibe"
+skills = "~/.vibe/skills"
+
+[agents.moxby]
+label = "Moxby"
+home = "~/.moxby"
+skills = "~/.moxby/skills"
+
+[agents.mux]
+label = "Mux"
+home = "~/.mux"
+skills = "~/.mux/skills"
+
+[agents.neovate]
+label = "Neovate"
+home = "~/.neovate"
+skills = "~/.neovate/skills"
+
+[agents.ona]
+label = "Ona"
+home = "~/.ona"
+skills = "~/.ona/skills"
+
+[agents.openclaw]
+label = "OpenClaw"
+home = "~/.openclaw"
+skills = "~/.openclaw/skills"
+check_dir = ["~/.clawdbot", "~/.moltbot"]
+check_boolean_operator = "OR"
+
+[agents.opencode]
+label = "OpenCode"
+home = "~/.config/opencode"
+skills = "~/.config/opencode/skills"
+
+[agents.openhands]
+label = "OpenHands"
+home = "~/.openhands"
+skills = "~/.openhands/skills"
+
+[agents.pochi]
+label = "Pochi"
+home = "~/.pochi"
+skills = "~/.pochi/skills"
+
+[agents.posit-assistant]
+label = "Posit Assistant"
+home = "~/.posit/assistant"
+skills = "~/.posit/assistant/skills"
+check_dir = ["~/.positai"]
+check_boolean_operator = "OR"
+
+[agents.qoder]
+label = "Qoder"
+home = "~/.qoder"
+skills = "~/.qoder/skills"
+
+[agents.qoder-cn]
+label = "Qoder CN"
+home = "~/.qoder-cn"
+skills = "~/.qoder-cn/skills"
+
+[agents.qwen-code]
+label = "Qwen Code"
+home = "~/.qwen"
+skills = "~/.qwen/skills"
+
+[agents.reasonix]
+label = "Reasonix"
+home = "~/.reasonix"
+skills = "~/.reasonix/skills"
+
+[agents.roo]
+label = "Roo Code"
+home = "~/.roo"
+skills = "~/.roo/skills"
+
+[agents.rovodev]
+label = "Rovo Dev"
+home = "~/.rovodev"
+skills = "~/.rovodev/skills"
+
+[agents.sarvam-code]
+label = "Sarvam Code"
+home = "~/.sarvam"
+skills = "~/.agents/skills"
+
+[agents.tabnine-cli]
+label = "Tabnine CLI"
+home = "~/.tabnine"
+skills = "~/.tabnine/agent/skills"
+
+[agents.terramind]
+label = "Terramind"
+home = "~/.terramind"
+skills = "~/.terramind/skills"
+
+[agents.tinycloud]
+label = "Tinycloud"
+home = "~/.tinycloud"
+skills = "~/.tinycloud/skills"
+
+[agents.trae]
+label = "Trae"
+home = "~/.trae"
+skills = "~/.trae/skills"
+
+[agents.trae-cn]
+label = "Trae CN"
+home = "~/.trae-cn"
+skills = "~/.trae-cn/skills"
+
+[agents.warp]
+label = "Warp"
+home = "~/.warp"
+skills = "~/.agents/skills"
+
+[agents.windsurf]
+label = "Windsurf"
+home = "~/.codeium/windsurf"
+skills = "~/.codeium/windsurf/skills"
+
+[agents.zcode]
+label = "ZCode"
+home = "~/.zcode"
+skills = "~/.zcode/skills"
+check_dir = ["/Applications/ZCode.app"]
+check_boolean_operator = "OR"
+
+[agents.zed]
+label = "Zed"
+home = "~/.config/zed"
+skills = "~/.agents/skills"
+
+[agents.zencoder]
+label = "Zencoder"
+home = "~/.zencoder"
+skills = "~/.zencoder/skills"
+
+[agents.zenflow]
+label = "Zenflow"
+home = "~/.zencoder"
+skills = "~/.zencoder/skills"

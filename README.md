@@ -5,7 +5,7 @@
 
 My skill set for coding agents. Three things set it apart:
 
-- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, ready for **<!-- agents:count -->five<!-- /agents:count --> coding agents** ([which ones](#where-each-agent-looks)): Claude Code, Codex, Kimi, Grok and Pi. Every agent works from the same directories, the same structure and the same rules.
+- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, ready for **<!-- agents:count -->75<!-- /agents:count --> coding agents** ([which ones](#where-each-agent-looks)): Claude Code, Codex, Kimi, Grok, Pi, Cursor, Gemini CLI, OpenCode and more. Every agent works from the same directories, the same structure and the same rules.
 - **Token-lean.** Every model-invocable skill puts its description into every session before you type a word. Building this set, I cut 174 skills: about 11k tokens of skill listings that loaded at every session start. Long skills I call by name are now typed-only, and the shared `AGENTS.md` went from 10–11.5k characters per CLI to under 8k. [`skill-critique`](skills/skill-critique/SKILL.md) measures this for your own setup and reviews every skill on the machine.
 - **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, so you can see each opinion and drop the ones you don't share.
 
@@ -325,9 +325,12 @@ Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CL
 
 ## Where each agent looks
 
-Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skill-critique/agents.toml): a label, a home dir, the dir it reads skills from, and optional detection checks. Ids match [npx skills](https://github.com/vercel-labs/skills). `/skill-critique` uses it to find which agents are installed (even ones with no skills) and measure what each loads; this table and the graphics are generated from it. Installing is npx skills' job; the registry only describes agents. Add your own without touching the repo: see [Customize](#customize).
+Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skill-critique/agents.toml): a label, a home dir, the dir it reads skills from, and optional detection checks. Five are verified here (Claude Code, Codex, Kimi Code, Grok, Pi); the rest come from the agent table of [npx skills](https://github.com/vercel-labs/skills), with the same ids. `/skill-critique` uses it to find which agents are installed (even ones with no skills) and measure what each loads; this table and the graphics are generated from it. Installing is npx skills' job; the registry only describes agents. Add your own without touching the repo: see [Customize](#customize). Refresh the npx part with `uv run tools/npx_agents.py <unpacked skills package>`.
 
 <!-- agents:table -->
+<details>
+<summary>All 75 agents</summary>
+
 | Agent | Id | Detected when | Reads skills from |
 |---|---|---|---|
 | Claude Code | `claude-code` | `~/.claude` exists | `~/.claude/skills` |
@@ -335,6 +338,78 @@ Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skil
 | Kimi Code | `kimi-code-cli` | `~/.kimi-code` exists, and `kimi` on PATH | `~/.agents/skills` |
 | Grok | `grok` | `~/.grok` exists, and `grok` on PATH | `~/.grok/skills` |
 | Pi | `pi` | `~/.pi/agent` exists, and `pi` on PATH | `~/.agents/skills` |
+| AdaL | `adal` | `~/.adal` exists | `~/.adal/skills` |
+| AiderDesk | `aider-desk` | `~/.aider-desk` exists | `~/.aider-desk/skills` |
+| Amp | `amp` | `~/.config/amp` exists | `~/.config/agents/skills` |
+| Antigravity | `antigravity` | `~/.gemini/antigravity` exists | `~/.gemini/config/skills` |
+| Antigravity CLI | `antigravity-cli` | `~/.gemini/antigravity-cli` exists | `~/.gemini/config/skills` |
+| AstrBot | `astrbot` | `~/.astrbot` exists | `~/.astrbot/data/skills` |
+| Augment | `augment` | `~/.augment` exists | `~/.augment/skills` |
+| Autohand Code CLI | `autohand-code` | `~/.autohand` exists | `~/.autohand/skills` |
+| IBM Bob | `bob` | `~/.bob` exists | `~/.bob/skills` |
+| Cline | `cline` | `~/.cline` exists | `~/.agents/skills` |
+| CodeArts Agent | `codearts-agent` | `~/.codeartsdoer` exists | `~/.codeartsdoer/skills` |
+| CodeBuddy | `codebuddy` | `~/.codebuddy` exists | `~/.codebuddy/skills` |
+| Codemaker | `codemaker` | `~/.codemaker` exists | `~/.codemaker/skills` |
+| Code Studio | `codestudio` | `~/.codestudio` exists | `~/.codestudio/skills` |
+| Command Code | `command-code` | `~/.commandcode` exists | `~/.commandcode/skills` |
+| Continue | `continue` | `~/.continue` exists | `~/.continue/skills` |
+| Cortex Code | `cortex` | `~/.snowflake/cortex` exists | `~/.snowflake/cortex/skills` |
+| Crush | `crush` | `~/.config/crush` exists | `~/.config/crush/skills` |
+| Cursor | `cursor` | `~/.cursor` exists | `~/.cursor/skills` |
+| Deep Agents | `deepagents` | `~/.deepagents` exists | `~/.deepagents/agent/skills` |
+| Devin for Terminal | `devin` | `~/.config/devin` exists | `~/.config/devin/skills` |
+| Dexto | `dexto` | `~/.dexto` exists | `~/.agents/skills` |
+| Droid | `droid` | `~/.factory` exists | `~/.factory/skills` |
+| Firebender | `firebender` | `~/.firebender` exists | `~/.firebender/skills` |
+| ForgeCode | `forgecode` | `~/.forge` exists | `~/.forge/skills` |
+| fx | `fx` | `~/.fx` exists | `~/.agents/skills` |
+| Gemini CLI | `gemini-cli` | `~/.gemini` exists | `~/.gemini/skills` |
+| GitHub Copilot | `github-copilot` | `~/.copilot` exists | `~/.copilot/skills` |
+| Goose | `goose` | `~/.config/goose` exists | `~/.config/goose/skills` |
+| Hermes Agent | `hermes-agent` | `~/.hermes` exists | `~/.hermes/skills` |
+| iFlow CLI | `iflow-cli` | `~/.iflow` exists | `~/.iflow/skills` |
+| inference.sh | `inference-sh` | `~/.inferencesh` exists | `~/.inferencesh/skills` |
+| Jazz | `jazz` | `~/.jazz` exists | `~/.jazz/skills` |
+| Junie | `junie` | `~/.junie` exists | `~/.junie/skills` |
+| Kilo Code | `kilo` | `~/.kilo` or `~/.kilocode` exists | `~/.kilo/skills` |
+| Kimchi | `kimchi` | `~/.config/kimchi` exists | `~/.config/kimchi/harness/skills` |
+| Kiro CLI | `kiro-cli` | `~/.kiro` exists | `~/.kiro/skills` |
+| Kode | `kode` | `~/.kode` exists | `~/.kode/skills` |
+| Lingma | `lingma` | `~/.lingma` exists | `~/.lingma/skills` |
+| Loaf | `loaf` | `~/.loaf` exists | `~/.agents/skills` |
+| MCPJam | `mcpjam` | `~/.mcpjam` exists | `~/.mcpjam/skills` |
+| MiniMax Code | `minimax-code` | `~/.minimax` or `/Applications/MiniMax Code.app` exists | `~/.minimax/skills` |
+| Mistral Vibe | `mistral-vibe` | `~/.vibe` exists | `~/.vibe/skills` |
+| Moxby | `moxby` | `~/.moxby` exists | `~/.moxby/skills` |
+| Mux | `mux` | `~/.mux` exists | `~/.mux/skills` |
+| Neovate | `neovate` | `~/.neovate` exists | `~/.neovate/skills` |
+| Ona | `ona` | `~/.ona` exists | `~/.ona/skills` |
+| OpenClaw | `openclaw` | `~/.openclaw` or `~/.clawdbot` or `~/.moltbot` exists | `~/.openclaw/skills` |
+| OpenCode | `opencode` | `~/.config/opencode` exists | `~/.config/opencode/skills` |
+| OpenHands | `openhands` | `~/.openhands` exists | `~/.openhands/skills` |
+| Pochi | `pochi` | `~/.pochi` exists | `~/.pochi/skills` |
+| Posit Assistant | `posit-assistant` | `~/.posit/assistant` or `~/.positai` exists | `~/.posit/assistant/skills` |
+| Qoder | `qoder` | `~/.qoder` exists | `~/.qoder/skills` |
+| Qoder CN | `qoder-cn` | `~/.qoder-cn` exists | `~/.qoder-cn/skills` |
+| Qwen Code | `qwen-code` | `~/.qwen` exists | `~/.qwen/skills` |
+| Reasonix | `reasonix` | `~/.reasonix` exists | `~/.reasonix/skills` |
+| Roo Code | `roo` | `~/.roo` exists | `~/.roo/skills` |
+| Rovo Dev | `rovodev` | `~/.rovodev` exists | `~/.rovodev/skills` |
+| Sarvam Code | `sarvam-code` | `~/.sarvam` exists | `~/.agents/skills` |
+| Tabnine CLI | `tabnine-cli` | `~/.tabnine` exists | `~/.tabnine/agent/skills` |
+| Terramind | `terramind` | `~/.terramind` exists | `~/.terramind/skills` |
+| Tinycloud | `tinycloud` | `~/.tinycloud` exists | `~/.tinycloud/skills` |
+| Trae | `trae` | `~/.trae` exists | `~/.trae/skills` |
+| Trae CN | `trae-cn` | `~/.trae-cn` exists | `~/.trae-cn/skills` |
+| Warp | `warp` | `~/.warp` exists | `~/.agents/skills` |
+| Windsurf | `windsurf` | `~/.codeium/windsurf` exists | `~/.codeium/windsurf/skills` |
+| ZCode | `zcode` | `~/.zcode` or `/Applications/ZCode.app` exists | `~/.zcode/skills` |
+| Zed | `zed` | `~/.config/zed` exists | `~/.agents/skills` |
+| Zencoder | `zencoder` | `~/.zencoder` exists | `~/.zencoder/skills` |
+| Zenflow | `zenflow` | `~/.zencoder` exists | `~/.zencoder/skills` |
+
+</details>
 <!-- /agents:table -->
 
 Known differences between them (handled in `/skill-critique`'s scan):
@@ -396,6 +471,7 @@ patches/<upstream>/    one .patch per skill, each with a Why: header
 skills/                own skills, plus forks that carry their own LICENSE
 skills/skill-critique/agents.toml   the agent registry
 build.py               build · verify · diff · bump · install (uv script)
+tools/npx_agents.py    refresh the npx part of the agent registry
 ci/release.py          compare with the last release, release branch commit, changelog, archives
 tests/                 behavioral tests: uv run tests/run.py
 .github/workflows/     release.yml (weekly + manual release), check.yml (PRs and main)
@@ -408,7 +484,7 @@ docs/graphics.py       renders docs/assets/*.svg and the README's agent blocks f
 
 | Content | License |
 |---|---|
-| Own skills, `build.py`, `ci/`, `tests/`, docs, template, settings example | [MIT](LICENSE) |
+| Own skills, `build.py`, `ci/`, `tools/`, `tests/`, docs, template, settings example | [MIT](LICENSE) |
 | pstack, taste-skill and mattpocock skills, plus patches to them | MIT; each built skill carries its upstream `LICENSE` |
 | `pfd` and its patch | CC BY-SA 4.0 (share-alike applies to the adaptation) |
 | `impeccable` | Apache-2.0: `LICENSE`, `NOTICE.md` and `CHANGES.md` in the skill |
