@@ -394,29 +394,15 @@ def skill_map(c: dict, info: dict[str, dict]) -> str:
 
 # ---------- README blocks ----------
 
-def agents_table() -> str:
-    rows = ["| Agent | Id | Detected when | Reads skills from |", "|---|---|---|---|"]
-    home = str(Path.home())
-    short = lambda p: str(p).replace(home, "~")
-    for a in AGENTS:
-        when = [f"`{short(a.home)}`"] + [f"`{short(d)}`" for d in a.check_dir]
-        text = (" or " if a.operator == "OR" else " and ").join(when) + (" exists" if len(when) == 1 else " exist" if a.operator == "AND" else " exists")
-        if a.check_binary:
-            text += (" or " if a.operator == "OR" else ", and ") + ", ".join(f"`{b}`" for b in a.check_binary) + " on PATH"
-        rows.append(f"| {a.label} | `{a.id}` | {text} | `{short(a.skills)}` |")
-    return "\n".join(rows)
-
-
 def update_readme() -> None:
     path = ROOT / "README.md"
     text = path.read_text()
-    blocks = {"agents:table": agents_table(), "agents:list": joined(LABELS)}
+    blocks = {"agents:list": joined(LABELS)}
     for key, value in blocks.items():
         pattern = re.compile(rf"(<!-- {key} -->)(.*?)(<!-- /{key} -->)", re.S)
         if not pattern.search(text):
             raise SystemExit(f"README.md has no <!-- {key} --> block")
-        sep = "\n" if key == "agents:table" else ""
-        text = pattern.sub(lambda m: m.group(1) + sep + value + sep + m.group(3), text)
+        text = pattern.sub(lambda m: m.group(1) + value + m.group(3), text)
     path.write_text(text)
 
 

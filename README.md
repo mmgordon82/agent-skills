@@ -3,9 +3,13 @@
   <img alt="agent-skills: one opinionated, token-lean skill set shared by every registered coding agent. Example patch: the taste-skill description becomes typed-only, saving about 230 tokens per session." src="docs/assets/hero-light.svg" width="100%">
 </picture>
 
-My skill set for coding agents. Three things set it apart:
+My skill set for coding agents.
 
-- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, read by **<!-- agents:list -->Claude Code, Codex, Grok, Kimi Code and Pi<!-- /agents:list -->**, and installable into any other agent npx skills supports ([details](#where-each-agent-looks)). Every agent works from the same directories, the same structure and the same rules.
+I use several coding agents every day, and their quality wasn't uniform. Part of the reason was the skills: each agent loaded a different set, and some skills were written for one vendor's models, with that vendor's model names and flags, which put the other agents off applying them. This repo gives every agent the same skills, written so any of them can follow them.
+
+Three things set it apart:
+
+- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, read by **<!-- agents:list -->Claude Code, Codex, Grok, Kimi Code and Pi<!-- /agents:list -->**, and installable into any other agent npx skills supports. Every agent works from the same directories, the same structure and the same rules.
 - **Token-lean.** Every model-invocable skill puts its description into every session before you type a word. Building this set, I cut 174 skills: about 11k tokens of skill listings that loaded at every session start. Long skills I call by name are now typed-only, and the shared `AGENTS.md` went from 10–11.5k characters per CLI to under 8k. [`skill-critique`](skills/skill-critique/SKILL.md) measures this for your own setup and reviews every skill on the machine.
 - **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, so you can see each opinion and drop the ones you don't share.
 
@@ -18,7 +22,6 @@ My skill set for coding agents. Three things set it apart:
 - [Releases](#releases)
 - [Recommended upstream packs](#recommended-upstream-packs-not-shipped-here)
 - [AGENTS.md template](#agentsmd-template)
-- [Where each agent looks](#where-each-agent-looks)
 - [Working with patches](#working-with-patches)
 - [Writing skills that load reliably](#writing-skills-that-load-reliably)
 - [Repo layout](#repo-layout) · [Licenses](#licenses)
@@ -77,7 +80,7 @@ mkdir -p ~/.agents/skills
 gh release download --repo mmgordon82/agent-skills -p '*.tar.gz' -O - | tar xz -C ~/.agents/skills
 ```
 
-Or download the `.tar.gz` or `.zip` from the [releases page](https://github.com/mmgordon82/agent-skills/releases) and extract it into your skills directory. Skills with the same name are replaced. Agents that don't read `~/.agents/skills` need a link per skill in their own dir ([which ones](#where-each-agent-looks)); `npx skills` does that for you.
+Or download the `.tar.gz` or `.zip` from the [releases page](https://github.com/mmgordon82/agent-skills/releases) and extract it into your skills directory. Skills with the same name are replaced. Agents that don't read `~/.agents/skills` need a link per skill in their own dir; `npx skills` does that for you.
 
 **From source** (requires `git` and [uv](https://docs.astral.sh/uv/); uv installs Python 3.11+ and the script's dependencies on first run):
 
@@ -248,7 +251,7 @@ local_tooling = "local-tooling"
 | `handoff.dir` | `handoff` |
 | `review.reviewers` | `adversarial-review` |
 | `offline.*` | `airgap`, optional: used only when set and the target is offline |
-| `agents.<id>` | Your own agents, or overrides of shipped ones, for `/skill-critique` and [Where each agent looks](#where-each-agent-looks) |
+| `agents.<id>` | Your own agents, or overrides of the ones in [`agents.toml`](skills/skill-critique/agents.toml), for `/skill-critique` |
 | `validation.*` | `run-validation`: deploy target arch, browser tool, private VM-tooling skill |
 
 - **No file, or a key missing:** the agent uses the default shown above without asking. A fresh install behaves exactly like the defaults.
@@ -325,28 +328,6 @@ mkdir -p ~/.pi/agent && ln -sf ~/.agents/AGENTS.md ~/.pi/agent/AGENTS.md
 ```
 
 Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CLIs, MCP wrapper scripts) belong in a private `local-tooling` skill that you don't publish. `run-validation` reads it by path when it exists.
-
-## Where each agent looks
-
-Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skill-critique/agents.toml): a label, a home dir, the dir it reads skills from, and optional detection checks. The agents below are `verified`: their layout and quirks were checked by hand, and `/skill-critique` measures them exactly. The registry also carries the agent table of [npx skills](https://github.com/vercel-labs/skills), with the same ids, so the scan can detect any of those agents (even ones with no skills) and measure them with generic rules. Installing is npx skills' job; the registry only describes agents. Add your own without touching the repo: see [Customize](#customize). Refresh the npx part with `uv run tools/npx_agents.py <unpacked skills package>`.
-
-<!-- agents:table -->
-| Agent | Id | Detected when | Reads skills from |
-|---|---|---|---|
-| Claude Code | `claude-code` | `~/.claude` exists | `~/.claude/skills` |
-| Codex | `codex` | `~/.codex` exists | `~/.agents/skills` |
-| Grok | `grok` | `~/.grok` exists, and `grok` on PATH | `~/.grok/skills` |
-| Kimi Code | `kimi-code-cli` | `~/.kimi-code` exists, and `kimi` on PATH | `~/.agents/skills` |
-| Pi | `pi` | `~/.pi/agent` exists, and `pi` on PATH | `~/.agents/skills` |
-<!-- /agents:table -->
-
-Known differences between them (handled in `/skill-critique`'s scan):
-
-- **Claude Code:** typed-only via `disable-model-invocation: true`, or `skillOverrides` in `settings.json`. Tolerates invalid YAML frontmatter. Global instructions: `~/.claude/CLAUDE.md`.
-- **Codex:** also reads `~/.codex/skills` and plugins. Shows about 80 characters of a description. Typed-only needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`. Skips skills with invalid YAML frontmatter.
-- **Grok:** also reads `~/.claude/skills` and `[skills] paths` (Grok 1.0.77); `[paths] extra_skill_dirs` does not add skills. Global instructions are capped at 10k characters.
-- **Kimi Code:** also reads `~/.kimi-code/skills` and `extra_skill_dirs` in its `config.toml`. Global instructions: `~/.agents/AGENTS.md`.
-- **Pi:** global instructions in `~/.pi/agent/AGENTS.md`; set `PI_CODING_AGENT_DIR` to move it.
 
 ## Working with patches
 
