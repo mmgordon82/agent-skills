@@ -225,18 +225,16 @@ class PipelineTests(unittest.TestCase):
             root = Path(tmp)
             dist = root / "dist"
             target = root / "target"
-            claude = root / "claude"
             settings = root / "settings.toml"
             (dist / "demo").mkdir(parents=True)
             (dist / "demo" / "SKILL.md").write_text("demo")
-            args = ["install", "--target", str(target), "--claude", str(claude)]
+            args = ["install", "--target", str(target)]
             with patch.object(build, "DIST", dist), patch.object(build, "SETTINGS", settings):
                 first = self.runner.invoke(build.app, args)
                 second = self.runner.invoke(build.app, args)
             self.assertEqual(first.exit_code, 0, first.output)
             self.assertEqual(second.exit_code, 0, second.output)
             self.assertTrue((target / "demo").is_symlink())
-            self.assertTrue((claude / "demo").is_symlink())
             self.assertEqual((target / "demo" / "SKILL.md").read_text(), "demo")
             self.assertTrue(settings.exists())
 

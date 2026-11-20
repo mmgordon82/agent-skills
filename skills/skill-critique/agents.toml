@@ -1,0 +1,44 @@
+# Coding agents this skill set knows. One table per agent, keyed by a short id.
+# Add or override agents in ${XDG_CONFIG_HOME:-~/.config}/agent-skills/settings.toml with the same shape.
+#
+#   label         display name
+#   home          the agent's config dir
+#   skills        the dir it reads user skills from (~/.agents/skills is the shared one)
+#   check_binary  optional: programs that must be on PATH
+#   check_dir     optional: more directories that must exist (other install locations, app bundles)
+#   check_boolean_operator  optional: "AND" (default) or "OR"
+#
+# AND: installed when `home` and every check_dir exist and every check_binary is on PATH.
+# OR:  installed when any one of them is true.
+# Detection never depends on skills, so agents with no skills loaded still show up.
+# Ids match npx skills (github.com/vercel-labs/skills).
+
+# ---- Verified here: detection, skill dirs and quirks checked against each agent ----
+
+[agents.claude-code]
+label = "Claude Code"
+home = "~/.claude"
+skills = "~/.claude/skills"
+
+[agents.codex]
+label = "Codex"
+home = "~/.codex"
+skills = "~/.agents/skills"
+
+[agents.kimi-code-cli]
+label = "Kimi Code"
+home = "~/.kimi-code"
+skills = "~/.agents/skills"
+check_binary = ["kimi"]
+
+[agents.grok]
+label = "Grok"
+home = "~/.grok"
+skills = "~/.grok/skills"
+check_binary = ["grok"]
+
+[agents.pi]
+label = "Pi"
+home = "~/.pi/agent"
+skills = "~/.agents/skills"
+check_binary = ["pi"]

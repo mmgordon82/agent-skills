@@ -3,18 +3,21 @@
 # requires-python = ">=3.11"
 # dependencies = ["typer>=0.12", "rich>=13", "pyyaml>=6"]
 # ///
-"""Survey the agent skills on this machine.
+"""Survey the agent skills on this machine. Agents come from ../agents.toml plus [agents.*] in the
+user's settings file; any agent works with the generic rules, known ones get exact handling.
 
-  load       what each agent CLI loads into every new session: global instructions, the skill
-             listing (name + description of each model-invocable skill), plugin skills, commands
-             and agents; plus hooks, MCP servers, duplicates, broken links, bad frontmatter.
-  inventory  every skill found on disk, once per real directory: which CLIs see it and whether it
-             loads there, its per-session and on-use cost, size, age, and where it came from.
+  load       what each installed agent loads into every new session: global instructions, the
+             skill listing (name + description of each model-invocable skill), plugin skills,
+             commands and subagents; plus hooks, MCP servers, name clashes, broken links.
+  overview   every skill on disk, once per real directory: totals, auto-load cost per agent,
+             collisions, duplicates, near-duplicates, unseen skills; --json for the full data.
 
 Tokens are estimated as chars / 4."""
 
 from __future__ import annotations
 
+import difflib
+import hashlib
 import json
 import os
 import re
@@ -30,7 +33,11 @@ from typing import Annotated
 import typer
 import yaml
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from agents import SHARED_SKILLS, Agent, load_agents  # noqa: E402
 
 H = Path.home()
 console = Console(width=None if sys.stdout.isatty() else 220)  # agents read this captured
@@ -160,16 +167,25 @@ def fm_typed(_dir: Path, fm: dict) -> bool:
     return any(fm.get(k) is True for k in ("disable-model-invocation", "disableModelInvocation", "disable_model_invocation"))
 
 
-def claude() -> Report | None:
-    base = H / ".claude"
-    if not base.exists():
-        return None
-    rep = Report("Claude Code")
+# ---------- per-agent probes ----------
+# Every agent gets `generic`. Agents with known, verified behavior get a quirk function instead.
+
+def generic(a: Agent) -> Report:
+    rep = Report(f"{a.label} (generic rules)")
+    add_instructions(rep, a.home / "AGENTS.md")
+    scan_skills([a.skills], "skill", rep, fm_typed)
+    rep.mcp += list(section(load(a.home / "mcp.json", rep), "mcpServers"))
+    return rep
+
+
+def claude(a: Agent) -> Report:
+    base = a.home
+    rep = Report(a.label)
     add_instructions(rep, base / "CLAUDE.md")
     settings = load(base / "settings.json", rep)
     # settings.json skillOverrides can hide a skill from the model without touching its frontmatter.
     hidden = {k for k, v in section(settings, "skillOverrides").items() if v in ("user-invocable-only", "off")}
-    scan_skills([base / "skills"], "skill", rep, lambda d, fm: fm_typed(d, fm) or str(fm.get("name") or d.name) in hidden)
+    scan_skills([a.skills], "skill", rep, lambda d, fm: fm_typed(d, fm) or str(fm.get("name") or d.name) in hidden)
     md_entries(base / "agents", "agent", rep, "")
     md_entries(base / "commands", "command", rep, "/")
     rep.hooks += [f"{ev} (settings.json)" for ev in section(settings, "hooks")]
@@ -189,14 +205,12 @@ def claude() -> Report | None:
     return rep
 
 
-def codex() -> Report | None:
-    base = H / ".codex"
-    if not base.exists():
-        return None
-    rep = Report("Codex")
+def codex(a: Agent) -> Report:
+    base = a.home
+    rep = Report(a.label)
     add_instructions(rep, base / "AGENTS.md")
     typed = lambda d, fm: codex_typed_only(d)
-    scan_skills([H / ".agents" / "skills", base / "skills"], "skill", rep, typed, strict=True)
+    scan_skills([a.skills, base / "skills"], "skill", rep, typed, strict=True)
     cfg = load(base / "config.toml", rep)
     rep.mcp += list(section(cfg, "mcp_servers"))
     for plugin, conf in section(cfg, "plugins").items():
@@ -211,27 +225,23 @@ def codex() -> Report | None:
     return rep
 
 
-def kimi() -> Report | None:
-    base = Path(os.environ.get("KIMI_CODE_HOME", H / ".kimi-code"))
-    if not base.exists():
-        return None
-    rep = Report("Kimi Code")
+def kimi(a: Agent) -> Report:
+    base = Path(os.environ.get("KIMI_CODE_HOME", a.home))
+    rep = Report(a.label)
     add_instructions(rep, H / ".agents" / "AGENTS.md")
     extra = [Path(p).expanduser() for p in load(base / "config.toml", rep).get("extra_skill_dirs") or []]
-    scan_skills([base / "skills", H / ".agents" / "skills", *extra], "skill", rep, fm_typed)
+    scan_skills([base / "skills", a.skills, *extra], "skill", rep, fm_typed)
     rep.mcp += list(section(load(base / "mcp.json", rep), "mcpServers"))
     return rep
 
 
-def grok() -> Report | None:
-    base = H / ".grok"
-    if not base.exists():
-        return None
-    rep = Report("Grok")
+def grok(a: Agent) -> Report:
+    base = a.home
+    rep = Report(a.label)
     add_instructions(rep, base / "AGENTS.md")
     cfg = section(load(base / "config.toml", rep), "skills")
     extra = [Path(p).expanduser() for p in cfg.get("paths") or []]
-    scan_skills([base / "skills", H / ".agents" / "skills", H / ".claude" / "skills", *extra], "skill", rep, fm_typed)
+    scan_skills([a.skills, SHARED_SKILLS, H / ".claude" / "skills", *extra], "skill", rep, fm_typed)
     disabled = set(cfg.get("disabled") or [])
     for i in rep.items:
         if i.name in disabled:
@@ -240,32 +250,43 @@ def grok() -> Report | None:
     return rep
 
 
-def pi() -> Report | None:
-    base = Path(os.environ.get("PI_CODING_AGENT_DIR", H / ".pi" / "agent"))
-    if not base.exists():
-        return None
-    rep = Report("Pi")
+def pi(a: Agent) -> Report:
+    base = Path(os.environ.get("PI_CODING_AGENT_DIR", a.home))
+    rep = Report(a.label)
     add_instructions(rep, *(base / n for n in ("AGENTS.override.md", "AGENTS.md", "CLAUDE.md")))
     extra = [Path(p).expanduser() for p in load(base / "settings.json", rep).get("skills") or [] if isinstance(p, str)]
-    scan_skills([base / "skills", H / ".agents" / "skills", *extra], "skill", rep, fm_typed)
+    scan_skills([base / "skills", a.skills, *extra], "skill", rep, fm_typed)
     rep.mcp += list(section(load(base / "mcp.json", rep), "mcpServers"))
     return rep
+
+
+QUIRKS = {"claude-code": claude, "codex": codex, "kimi-code-cli": kimi, "grok": grok, "pi": pi}
+
+
+def warn(msg: str) -> None:
+    console.print(f"[yellow]! {msg}[/]")
+
+
+def probe_all(only: str | None = None) -> list[tuple[Agent, Report]]:
+    """Every installed agent (from the registry) with its report."""
+    out = []
+    for a in load_agents(warn=warn):
+        if only in (None, a.id) and a.installed():
+            out.append((a, QUIRKS.get(a.id, generic)(a)))
+    return out
 
 
 def tok(chars: int) -> str:
     return f"{chars // 4:,}"
 
 
-PROBES = dict(claude=claude, codex=codex, kimi=kimi, grok=grok, pi=pi)
-
-
 @app.command("load")
 def session_load(
     top: Annotated[int, typer.Option(help="Show the N heaviest always-loaded entries")] = 15,
-    only: Annotated[str | None, typer.Option(help="One agent: claude, codex, kimi, grok, pi")] = None,
+    only: Annotated[str | None, typer.Option(help="One agent id from the registry")] = None,
 ) -> None:
-    """What each CLI loads into every new session."""
-    reports = [r for k, f in PROBES.items() if (only in (None, k)) and (r := f())]
+    """What each installed agent loads into every new session."""
+    reports = [r for _, r in probe_all(only)]
     summary = Table("agent", "instructions", "skills listed", "typed-only", "plugin skills", "commands + agents",
                     "~tokens / session", "hooks", "MCP", title="Loaded into every new session", box=None)
     for r in reports:
@@ -283,8 +304,7 @@ def session_load(
             f"[bold]{tok(sum(by.values()))}[/]", str(len(r.hooks)), str(len(r.mcp)))
     console.print(summary)
     console.print("Token counts: chars/4. Hooks inject text that can't be measured statically; MCP tool schemas"
-                  " load per server unless the CLI defers them.\n")
-
+                  " load per server unless the agent defers them.\n")
     for r in reports:
         heavy = sorted((i for i in r.items if i.loaded and i.kind != "instructions"), key=lambda i: -i.chars)[:top]
         t = Table("entry", "kind", "~tokens", "path", title=f"{r.agent}: heaviest entries", box=None)
@@ -300,32 +320,33 @@ def session_load(
         console.print()
 
 
-# ---------- inventory ----------
-
-SKILL_ROOTS = [".agents/skills", ".claude/skills", ".codex/skills", ".grok/skills", ".kimi-code/skills",
-               ".pi/agent/skills", ".cursor/skills", ".gemini/skills"]
-LETTER = dict(claude="C", codex="X", kimi="K", grok="G", pi="P")
-
+# ---------- overview ----------
 
 @dataclass
 class Skill:
     name: str
     real: Path
-    desc_chars: int
+    description: str
     body_chars: int
     files: int
     size: int
     modified: str
     origin: str
+    content_hash: str
     paths: list[str] = field(default_factory=list)
-    seen: dict[str, bool] = field(default_factory=dict)  # CLI -> listed to the model (False = typed-only)
-    issues: list[str] = field(default_factory=list)
+    listed_by: list[str] = field(default_factory=list)     # agent ids that list it to the model
+    typed_only_in: list[str] = field(default_factory=list)  # agent ids that see it as a typed-only command
+
+    @property
+    def per_session(self) -> int:  # chars paid in each session of each agent that lists it
+        return len(self.name) + len(self.description) if self.listed_by else 0
 
 
 def plugin_roots() -> list[Path]:
     """Skill dirs of every cached plugin, enabled or not (latest version of each)."""
+    caches = [p for a in load_agents(warn=lambda m: None) for p in (a.home / "plugins" / "cache",)]
     out = []
-    for cache in (H / ".claude" / "plugins" / "cache", H / ".codex" / "plugins" / "cache"):
+    for cache in caches:
         for plugin in (p for m in (cache.iterdir() if cache.is_dir() else []) if m.is_dir() for p in m.iterdir() if p.is_dir()):
             versions = sorted((v for v in plugin.iterdir() if v.is_dir()), key=lambda v: v.stat().st_mtime)
             if versions:
@@ -364,14 +385,40 @@ def folder_stats(d: Path) -> tuple[int, int]:
     return files, size
 
 
-@app.command()
-def inventory(
-    json_out: Annotated[Path | None, typer.Option("--json", help="Also write the full inventory as JSON here")] = None,
-    extra: Annotated[list[Path] | None, typer.Option(help="More directories to search (repeatable)")] = None,
-    all_: Annotated[bool, typer.Option("--all", help="Also list skills no CLI sees, one by one")] = False,
-) -> None:
-    """Every skill on this machine, once per real directory, highest per-session cost first."""
-    lock = (load_json_quiet(H / ".agents" / ".skill-lock.json").get("skills") or {})
+WORD = re.compile(r"[a-z][a-z0-9]{3,}")
+STOP = {"when", "with", "that", "this", "your", "from", "into", "user", "users", "skill", "skills", "about",
+        "using", "used", "asks", "wants", "like", "such", "only", "also", "each", "them", "they", "their",
+        "what", "which", "will", "than", "then", "before", "after", "work", "code"}
+
+
+def near_duplicates(skills: list[Skill], threshold: float) -> list[tuple[float, Skill, Skill]]:
+    """Candidate pairs: TF-IDF cosine of the descriptions, plus a small bonus when the names share a
+    word (code-review / code-reviewer). The agent confirms each pair by reading both skills."""
+    import math
+    docs = [set(WORD.findall((s.name.replace("-", " ") + " " + s.description).lower())) - STOP for s in skills]
+    df: dict[str, int] = defaultdict(int)
+    for d in docs:
+        for w in d:
+            df[w] += 1
+    idf = {w: math.log(len(docs) / c) for w, c in df.items()}
+    vecs = []
+    for d in docs:
+        v = {w: idf[w] for w in d}
+        norm = math.sqrt(sum(x * x for x in v.values())) or 1.0
+        vecs.append({w: x / norm for w, x in v.items()})
+    name_words = [set(WORD.findall(s.name.replace("-", " "))) - STOP for s in skills]
+    out = []
+    for i in range(len(skills)):
+        for j in range(i + 1, len(skills)):
+            cos = sum(x * vecs[j].get(w, 0.0) for w, x in vecs[i].items())
+            score = cos + (0.1 if name_words[i] & name_words[j] else 0.0)
+            if score >= threshold:
+                out.append((min(score, 1.0), skills[i], skills[j]))
+    return sorted(out, key=lambda x: -x[0])
+
+
+def collect(extra: list[Path]) -> tuple[list[tuple[Agent, Report]], list[Skill]]:
+    lock = load_json_quiet(H / ".agents" / ".skill-lock.json").get("skills") or {}
     skills: dict[Path, Skill] = {}
 
     def add(md: Path) -> Skill:
@@ -379,58 +426,120 @@ def inventory(
         if real not in skills:
             issues: list[str] = []
             fm = frontmatter(md, issues)
-            text = md.read_text(errors="replace")
+            data = md.read_bytes()
             files, size = folder_stats(real)
             skills[real] = Skill(
-                name=str(fm.get("name") or md.parent.name), real=real,
-                desc_chars=len(str(fm.get("description") or "")), body_chars=len(text),
-                files=files, size=size, modified=datetime.fromtimestamp(md.stat().st_mtime).strftime("%Y-%m-%d"),
-                origin=origin_of(md.parent, lock), issues=issues)
+                name=str(fm.get("name") or md.parent.name), real=real, description=str(fm.get("description") or ""),
+                body_chars=len(data.decode(errors="replace")), files=files, size=size,
+                modified=datetime.fromtimestamp(md.stat().st_mtime).strftime("%Y-%m-%d"),
+                origin=origin_of(md.parent, lock), content_hash=hashlib.sha1(data).hexdigest())
         s = skills[real]
         shown = str(md.parent).replace(str(H), "~")
         if shown not in s.paths:
             s.paths.append(shown)
         return s
 
-    for agent, probe in PROBES.items():
-        rep = probe()
-        for item in rep.items if rep else []:
+    reports = probe_all()
+    for agent, rep in reports:
+        for item in rep.items:
             if item.kind in ("skill", "plugin-skill"):
-                add(item.path).seen[agent] = item.loaded
-    for root in [H / r for r in SKILL_ROOTS] + plugin_roots() + [e.expanduser() for e in extra or []]:
+                s = add(item.path)
+                (s.listed_by if item.loaded else s.typed_only_in).append(agent.id)
+    roots = {SHARED_SKILLS, *(a.skills for a in load_agents(warn=lambda m: None)), *plugin_roots(), *extra}
+    for root in roots:
         for md in find_skills(root, depth=4) if root.is_dir() else []:
             add(md)
+    return reports, sorted(skills.values(), key=lambda s: (-s.per_session, s.name))
 
-    rows = sorted(skills.values(), key=lambda s: (-max((s.desc_chars for v in s.seen.values() if v), default=0), s.name))
-    names: dict[str, int] = defaultdict(int)
+
+@app.command()
+def overview(
+    json_out: Annotated[Path | None, typer.Option("--json", help="Also write every skill and finding as JSON here")] = None,
+    extra: Annotated[list[Path] | None, typer.Option(help="More directories to search (repeatable)")] = None,
+    top: Annotated[int, typer.Option(help="Rows per section")] = 20,
+    list_all: Annotated[bool, typer.Option("--list", help="Also list every skill an agent sees")] = False,
+    threshold: Annotated[float, typer.Option(help="Near-duplicate score cutoff, 0..1")] = 0.3,
+) -> None:
+    """Every skill on disk: totals, auto-load per agent, collisions, duplicates, near-duplicates, unseen."""
+    reports, rows = collect([e.expanduser() for e in extra or []])
+    agents = [a for a, _ in reports]
+    seen = [s for s in rows if s.listed_by or s.typed_only_in]
+    unseen = [s for s in rows if not (s.listed_by or s.typed_only_in)]
+    auto = [s for s in rows if s.listed_by]
+
+    by_name: dict[str, list[Skill]] = defaultdict(list)
     for s in rows:
-        names[s.name] += 1
-    t = Table("skill", "loads in", "~tok/session", "~tok on use", "files", "size", "modified", "origin",
-              title=f"Skills on this machine ({len(rows)})", box=None)
-    for s in (rows if all_ else [s for s in rows if s.seen]):
-        where = " ".join(LETTER[a] if on else LETTER[a].lower() for a, on in s.seen.items()) or "-"
-        per_session = tok(s.desc_chars + len(s.name)) if any(s.seen.values()) else "0"
-        flag = " [yellow](dup)[/]" if names[s.name] > 1 else ""
-        t.add_row(s.name + flag, where, per_session, tok(s.body_chars), str(s.files), f"{s.size / 1024:,.0f}K",
-                  s.modified, s.origin)
+        by_name[s.name].append(s)
+    collisions = {n: c for n, c in by_name.items() if len({s.content_hash for s in c}) > 1}
+    by_hash: dict[str, list[Skill]] = defaultdict(list)
+    for s in rows:
+        by_hash[s.content_hash].append(s)
+    duplicates = [c for c in by_hash.values() if len(c) > 1]
+    names: dict[str, Skill] = {}
+    for s in seen:  # one representative per name, for pairwise comparison
+        names.setdefault(s.name, s)
+    near = near_duplicates(list(names.values()), threshold)
+
+    console.print(f"[bold]{len(rows)} skills on disk[/] · {len(by_name)} names · {len(auto)} auto-loaded by some agent · "
+                  f"{sum(1 for s in seen if not s.listed_by)} typed-only everywhere · {len(unseen)} seen by no agent · "
+                  f"{len(collisions)} name collisions · {len(duplicates)} duplicate sets · {len(near)} near-duplicate pairs · "
+                  f"{len(agents)} agents installed: {', '.join(a.id for a in agents)}\n")
+
+    t = Table("agent", "skills auto-loaded", "~tokens / session", "typed-only", title="Auto-load per agent", box=None)
+    for a, rep in reports:
+        listed = [i for i in rep.items if i.kind in ("skill", "plugin-skill") and i.loaded]
+        t.add_row(f"{a.label} ({a.id})", str(len(listed)), tok(sum(i.chars for i in listed)),
+                  str(sum(1 for i in rep.items if i.kind in ("skill", "plugin-skill") and not i.loaded)))
     console.print(t)
-    unseen: dict[str, int] = defaultdict(int)
-    for s in rows:
-        if not s.seen:
-            unseen[s.origin] += 1
-    if unseen and not all_:
-        u = Table("source", "skills", title="On disk but seen by no CLI (disabled plugins, stray copies; --all lists them)", box=None)
-        for origin, n in sorted(unseen.items(), key=lambda kv: -kv[1]):
-            u.add_row(origin, str(n))
-        console.print(u)
-    loaded = sum(1 for s in rows if any(s.seen.values()))
-    typed = sum(1 for s in rows if s.seen and not any(s.seen.values()))
-    console.print(f"loads in: C Claude Code, X Codex, K Kimi, G Grok, P Pi; lowercase = visible but typed-only.\n"
-                  f"{loaded} listed to a model somewhere · {typed} typed-only everywhere · "
-                  f"{sum(1 for s in rows if not s.seen)} seen by no CLI (disabled plugins, stray copies) · "
-                  f"{sum(1 for n, c in names.items() if c > 1)} names on more than one copy")
+
+    t = Table("skill", "~tok / session", "auto-loaded by", "~tok on use", "origin",
+              title=f"Heaviest auto-loaded skills (top {top} of {len(auto)})", box=None)
+    for s in auto[:top]:
+        t.add_row(s.name, tok(s.per_session), f"{len(s.listed_by)}/{len(agents)}: {', '.join(s.listed_by)}",
+                  tok(s.body_chars), s.origin)
+    console.print(t)
+
+    if collisions:
+        t = Table("name", "copies", "who loads which copy", title="Collisions: same name, different content", box=None)
+        for n, c in sorted(collisions.items(), key=lambda kv: -len(kv[1]))[:top]:
+            who = "; ".join(f"{s.paths[0]} ({', '.join(s.listed_by + s.typed_only_in) or 'nobody'})" for s in c)
+            t.add_row(n, str(len(c)), who)
+        console.print(t)
+    if duplicates:
+        t = Table("skill", "copies", "where", title="Duplicates: identical SKILL.md in several places", box=None)
+        for c in sorted(duplicates, key=lambda c: -len(c))[:top]:
+            t.add_row(c[0].name, str(len(c)), "; ".join(s.paths[0] for s in c))
+        console.print(t)
+    if near:
+        t = Table("score", "skill", "skill", title="Near-duplicates (candidates: read both before acting)", box=None)
+        for sc, a, b in near[:top]:
+            t.add_row(f"{sc:.2f}", a.name, b.name)
+        console.print(t)
+    if unseen:
+        by_origin: dict[str, int] = defaultdict(int)
+        for s in unseen:
+            by_origin[s.origin] += 1
+        t = Table("source", "skills", title="On disk but seen by no agent (disabled plugins, stray copies)", box=None)
+        for o, n in sorted(by_origin.items(), key=lambda kv: -kv[1])[:top]:
+            t.add_row(o, str(n))
+        console.print(t)
+    if list_all:
+        t = Table("skill", "auto-loaded by", "typed-only in", "~tok/session", "~tok on use", "files", "size",
+                  "modified", "origin", title=f"Every skill an agent sees ({len(seen)})", box=None)
+        for s in seen:
+            t.add_row(s.name, ", ".join(s.listed_by) or "-", ", ".join(s.typed_only_in) or "-", tok(s.per_session),
+                      tok(s.body_chars), str(s.files), f"{s.size / 1024:,.0f}K", s.modified, s.origin)
+        console.print(t)
+
     if json_out:
-        json_out.write_text(json.dumps([{**s.__dict__, "real": str(s.real).replace(str(H), "~")} for s in rows], indent=1))
+        json_out.write_text(json.dumps({
+            "agents": [{"id": a.id, "label": a.label, "skills": str(a.skills).replace(str(H), "~")} for a in agents],
+            "skills": [{**{k: v for k, v in s.__dict__.items() if k != "real"}, "real": str(s.real).replace(str(H), "~"),
+                        "per_session_tokens": s.per_session // 4, "on_use_tokens": s.body_chars // 4} for s in rows],
+            "collisions": {n: [s.paths[0] for s in c] for n, c in collisions.items()},
+            "duplicates": [[s.paths[0] for s in c] for c in duplicates],
+            "near_duplicates": [{"score": round(sc, 2), "a": a.name, "b": b.name} for sc, a, b in near],
+        }, indent=1))
         console.print(f"wrote {json_out}")
 
 

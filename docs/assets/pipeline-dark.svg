@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="t">
-<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install for five CLIs</title>
+<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install for five agents</title>
 <style>
   .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
   .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
@@ -84,13 +84,13 @@
 <text x="928" y="98" class="mono" font-size="15" font-weight="600" fill="#3fb950" text-anchor="start" >dist/</text>
 <text x="928" y="119" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >26 skills, or a weekly release</text>
 <rect x="910" y="192" width="250" height="74" rx="10" fill="#151b23" stroke="#30363d"/>
-<text x="928" y="220" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >~/.agents/skills</text>
-<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >Codex · Kimi · Pi</text>
+<text x="928" y="220" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >npx skills add</text>
+<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >…#release · 5 agents</text>
 <rect x="910" y="312" width="250" height="74" rx="10" fill="#151b23" stroke="#30363d"/>
-<text x="928" y="340" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >~/.claude/skills</text>
-<text x="928" y="362" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >Claude Code · Grok</text>
-<text x="928" y="434" class="sans" font-size="12" font-weight="400" fill="#9198a1" text-anchor="start" >relative symlinks into</text>
-<text x="928" y="452" class="mono" font-size="12" font-weight="400" fill="#9198a1" text-anchor="start" >~/.agents, one source</text>
+<text x="928" y="340" class="mono" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="start" >build.py install</text>
+<text x="928" y="362" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >maintainer: live links to dist/</text>
+<text x="928" y="434" class="sans" font-size="12" font-weight="400" fill="#9198a1" text-anchor="start" >one copy in ~/.agents/skills,</text>
+<text x="928" y="452" class="sans" font-size="12" font-weight="400" fill="#9198a1" text-anchor="start" >agents link to it</text>
 <path class="flow" d="M290,103 C308.0,103 308.0,210 326,210" fill="none" stroke="#9198a1" stroke-width="1.6" marker-end="url(#arrow)"/>
 <path class="flow" d="M290,177 C308.0,177 308.0,210 326,210" fill="none" stroke="#9198a1" stroke-width="1.6" marker-end="url(#arrow)"/>
 <path class="flow" d="M290,251 C308.0,251 308.0,210 326,210" fill="none" stroke="#9198a1" stroke-width="1.6" marker-end="url(#arrow)"/>

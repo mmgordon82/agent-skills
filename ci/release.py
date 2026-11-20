@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import tomllib
 from datetime import datetime, timezone
@@ -30,8 +31,14 @@ EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # git's empty tree; the
 EVIDENCE_LIMIT = 150_000  # chars of diff sent to the model; the file list is always complete
 FILE_DIFF_LINES = 120
 
-SYSTEM = """You write release notes for agent-skills: a set of agent skills (folders with a SKILL.md)
-shared by Claude Code, Codex, Kimi Code, Grok and Pi. Some skills are the author's own; others are
+sys.path.insert(0, str(ROOT / "skills" / "skill-critique" / "scripts"))
+from agents import load_agents  # noqa: E402
+
+_LABELS = [a.label for a in load_agents(user=False)]
+AGENT_LABELS = ", ".join(_LABELS[:5]) + (f" and {len(_LABELS) - 5} more" if len(_LABELS) > 5 else "")
+
+SYSTEM = f"""You write release notes for agent-skills: a set of agent skills (folders with a SKILL.md)
+shared by coding agents such as {AGENT_LABELS}. Some skills are the author's own; others are
 pinned upstream skills with small local patches. Readers drop the skills into their skills directory.
 They care how agent behavior changes, not which files moved.
 

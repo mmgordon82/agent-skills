@@ -272,38 +272,35 @@ def bump(
 
 @app.command()
 def install(
-    target: Annotated[Path, typer.Option(help="Shared skills dir (Codex, Kimi)")] = Path("~/.agents/skills"),
-    claude: Annotated[str, typer.Option(help="Also link here (Claude Code, Grok); pass '' to skip")] = "~/.claude/skills",
+    target: Annotated[Path, typer.Option(help="Skills dir to point at dist/")] = Path("~/.agents/skills"),
     force: Annotated[bool, typer.Option(help="Replace existing skills with the same name")] = False,
 ) -> None:
-    """Symlink every dist/ skill into TARGET, and TARGET/<skill> into CLAUDE. Creates the settings file if missing."""
+    """Maintainer tool: point every TARGET/<skill> at dist/<skill>, so each rebuild is live in every agent
+    that links to TARGET. Agents get their links from npx skills (see README). Creates the settings file if missing."""
     if not DIST.exists():
         console.print("[red]no dist/; run build first[/]")
         raise typer.Exit(1)
     target = target.expanduser()
-    dirs = [(target, DIST)] + ([(Path(claude).expanduser(), target)] if claude else [])
+    target.mkdir(parents=True, exist_ok=True)
     skipped = 0
     for skill in sorted(p.name for p in DIST.iterdir()):
-        for into, src in dirs:
-            into.mkdir(parents=True, exist_ok=True)
-            link, want = into / skill, Path(os.path.relpath(src / skill, into))
-            if link.is_symlink() and Path(os.readlink(link)) == want:
+        link, want = target / skill, Path(os.path.relpath(DIST / skill, target))
+        if link.is_symlink() and Path(os.readlink(link)) == want:
+            continue
+        if link.exists() or link.is_symlink():
+            if not force:
+                console.print(f"[yellow]skip {link}: exists (use --force to replace)[/]")
+                skipped += 1
                 continue
-            if link.exists() or link.is_symlink():
-                if not force:
-                    console.print(f"[yellow]skip {link}: exists (use --force to replace)[/]")
-                    skipped += 1
-                    continue
-                shutil.rmtree(link) if link.is_dir() and not link.is_symlink() else link.unlink()
-            link.symlink_to(want)
-    console.print(f"[green]installed into {', '.join(str(d) for d, _ in dirs)}[/]" + (f", {skipped} skipped" if skipped else ""))
+            shutil.rmtree(link) if link.is_dir() and not link.is_symlink() else link.unlink()
+        link.symlink_to(want)
+    console.print(f"[green]linked {target} to dist/[/]" + (f", {skipped} skipped" if skipped else ""))
     if SETTINGS.exists():
         console.print(f"settings: {SETTINGS} (kept)")
     else:
         SETTINGS.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "settings.example.toml", SETTINGS)
         console.print(f"settings: created {SETTINGS} from settings.example.toml; edit it to customize")
-
 
 if __name__ == "__main__":
     app()

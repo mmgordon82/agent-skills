@@ -29,7 +29,7 @@ jobs:
       - name: Check generated graphics
         run: |
           uv run docs/graphics.py
-          git diff --exit-code -- docs/assets
+          git diff --exit-code -- docs/assets README.md
 
       - name: Test PostgreSQL batching example
         run: |

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="t">
-<title id="t">What&#x27;s cooking: pinned upstream skills, forks and my own skills go into one pot and come out as one skill set for Claude Code, Codex, Kimi, Grok and Pi</title>
+<title id="t">What&#x27;s cooking: pinned upstream skills, forks and my own skills go into one pot and come out as one skill set for Claude Code, Codex, Kimi Code, Grok and Pi</title>
 <style>
   .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
   .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
@@ -58,7 +58,7 @@
 <rect x="880" y="388" width="280" height="112" rx="10" fill="#151b23" stroke="#3fb950"/>
 <text x="900" y="416" class="mono" font-size="12" font-weight="600" fill="#9198a1" text-anchor="start" letter-spacing="1.5">SERVES</text>
 <text x="900" y="442" class="sans" font-size="15" font-weight="700" fill="#e6edf3" text-anchor="start" >26 skills, one copy</text>
-<text x="900" y="464" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >Claude Code · Codex · Kimi</text>
+<text x="900" y="464" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >Claude Code · Codex · Kimi Code</text>
 <text x="900" y="482" class="sans" font-size="13" font-weight="400" fill="#9198a1" text-anchor="start" >Grok · Pi</text>
 <path class="flow" d="M320,444 C350.0,444 350.0,420 380,420" fill="none" stroke="#9198a1" stroke-width="1.6" marker-end="url(#arrow)"/>
 <path class="flow" d="M822,420 C849.0,420 849.0,444 876,444" fill="none" stroke="#9198a1" stroke-width="1.6" marker-end="url(#arrow)"/>

@@ -32,3 +32,14 @@ browser = "chrome-devtools"
 # Name of a private skill with machine-specific commands (VM CLI, MCP wrapper paths).
 # run-validation reads it when it needs a VM. Leave as is if you don't have one.
 local_tooling = "local-tooling"
+
+# Coding agents, for /skill-critique and the docs. The shipped ones are in
+# skills/skill-critique/agents.toml; add yours here, or override a shipped one field by field (same id).
+# Required: label, home, skills. Optional: check_binary (programs on PATH), check_dir (more dirs that
+# must exist), check_boolean_operator ("AND", the default: home and every check; "OR": any one).
+#
+# [agents.my-cli]
+# label = "My CLI"
+# home = "~/.my-cli"
+# skills = "~/.agents/skills"
+# check_binary = ["my-cli"]

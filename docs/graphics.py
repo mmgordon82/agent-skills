@@ -3,11 +3,13 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Render the README graphics (light + dark) into docs/assets/. Reads upstreams.toml, skills/, patches/, dist/."""
+"""Render the README graphics (light + dark) into docs/assets/ and the README's generated agent blocks.
+Reads upstreams.toml, skills/, patches/, dist/ and the agent registry (skills/skill-critique/agents.toml)."""
 
 from __future__ import annotations
 
 import re
+import sys
 import tomllib
 from html import escape
 from pathlib import Path
@@ -37,7 +39,30 @@ COLUMNS = [
 # Where the forks in skills/ came from (they carry their own LICENSE).
 FORKS = {"pbakaus/impeccable": ["impeccable"],
          "affaan-m/everything-claude-code": ["db-migrations", "security-hunt", "ship-audit", "web-perimeter-audit"]}
-CLIS = "Claude Code · Codex · Kimi · Grok · Pi"
+sys.path.insert(0, str(ROOT / "skills" / "skill-critique" / "scripts"))
+from agents import load_agents  # noqa: E402
+
+# Shipped agents only (never the user's own additions), so the docs are the same on every machine.
+AGENTS = load_agents(user=False)
+LABELS = [a.label for a in AGENTS]
+NUMBER = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+N_AGENTS = NUMBER.get(len(AGENTS), str(len(AGENTS)))
+
+
+def fit(labels: list[str], max_chars: int, sep: str = " · ") -> str:
+    """As many labels as fit in max_chars, then "+N more", so the graphics survive a long agent list."""
+    out = []
+    for i, label in enumerate(labels):
+        rest = len(labels) - i - 1
+        candidate = sep.join(out + [label]) + (f"{sep}+{rest} more" if rest else "")
+        if len(candidate) > max_chars and out:
+            return sep.join(out) + f"{sep}+{len(labels) - i} more"
+        out.append(label)
+    return sep.join(out)
+
+
+def joined(labels: list[str]) -> str:
+    return ", ".join(labels[:-1]) + f" and {labels[-1]}" if len(labels) > 1 else "".join(labels)
 KIND_LABEL = {"own": "own", "derived": "derived fork + LICENSE", "patched": "pinned upstream + patch"}
 
 SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif"
@@ -133,11 +158,11 @@ def hero(c: dict) -> str:
     saved = sum(len(l) - 1 for l in removed) // 4
 
     b = []
-    b.append(text(64, 76, "CROSS-AGENT SKILL SET  ·  " + CLIS.upper(), c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.2"'))
+    b.append(text(64, 76, "CROSS-AGENT SKILL SET  ·  " + (fit([l.upper() for l in LABELS], 52, "  ·  ") if len(LABELS) <= 6 else f"{len(LABELS)} AGENTS"), c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.2"'))
     b.append(text(60, 150, "agent-skills", c, 64, weight=700, extra='letter-spacing="-1.5"'))
     b.append(text(64, 190, "One opinionated skill set for every coding agent.", c, 20, fill=c["muted"]))
     facts = [
-        ("own", "Cross-agent", "One copy on disk, one AGENTS.md, read by five CLIs."),
+        ("own", "Cross-agent", f"One copy on disk, one layout, ready for {N_AGENTS} agents."),
         ("add", "Token-lean", "174 skills cut: ~11k fewer tokens of skill listings."),
         ("patched", "Opinionated", "Tailored to me. Every patch says why."),
     ]
@@ -176,7 +201,7 @@ def hero(c: dict) -> str:
     b.append(f'<line x1="{X}" y1="{y + 8}" x2="{X + W}" y2="{y + 8}" stroke="{c["line"]}"/>')
     b.append(text(X + 20, y + 34, "pinned  Leonxlnx/taste-skill @ f6b7657", c, 12, "mono", c["muted"]))
     b.append(text(X + W - 20, y + 34, f"−{saved} tokens / session", c, 12, "mono", c["add"], 600, anchor="end"))
-    return svg(1200, 440, "agent-skills: one opinionated, token-lean skill set shared by Claude Code, Codex, Kimi, Grok and Pi",
+    return svg(1200, 440, f"agent-skills: one opinionated, token-lean skill set shared by {joined(LABELS)}",
                "\n".join(b), c)
 
 
@@ -244,8 +269,9 @@ def pot(c: dict, info: dict) -> str:
     b.append(card(880, 388, 280, 112, c, stroke=c["add"]))
     b.append(text(900, 416, "SERVES", c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.5"'))
     b.append(text(900, 442, f"{len(info)} skills, one copy", c, 15, weight=700))
-    b.append(text(900, 464, "Claude Code · Codex · Kimi", c, 13, fill=c["muted"]))
-    b.append(text(900, 482, "Grok · Pi", c, 13, fill=c["muted"]))
+    half = (len(LABELS) + 1) // 2
+    b.append(text(900, 464, fit(LABELS[:half], 34), c, 13, fill=c["muted"]))
+    b.append(text(900, 482, fit(LABELS[half:], 34), c, 13, fill=c["muted"]))
     b.append(curve(320, 444, 380, 420, c))
     b.append(curve(822, 420, 876, 444, c))
 
@@ -256,7 +282,7 @@ def pot(c: dict, info: dict) -> str:
            " .flame { transform-box: fill-box; transform-origin: bottom; animation: flick 0.9s ease-in-out infinite alternate; }"
            " @keyframes flick { to { transform: scaleY(0.75); } }")
     return svg(1200, 560, "What's cooking: pinned upstream skills, forks and my own skills go into one pot "
-               "and come out as one skill set for Claude Code, Codex, Kimi, Grok and Pi", "\n".join(b), c, css)
+               f"and come out as one skill set for {joined(LABELS)}", "\n".join(b), c, css)
 
 
 # ---------- pipeline ----------
@@ -319,12 +345,12 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     b.append(card(cols[3], y, W, 62, c, stroke=c["add"]))
     b.append(text(cols[3] + 18, y + 26, "dist/", c, 15, "mono", c["add"], 600))
     b.append(text(cols[3] + 18, y + 47, f"{n_skills} skills, or a weekly release", c, 13, fill=c["muted"]))
-    for d, who, ty in [("~/.agents/skills", "Codex · Kimi · Pi", 170), ("~/.claude/skills", "Claude Code · Grok", 290)]:
+    for d, who, ty in [("npx skills add", f"…#release · {len(AGENTS)} agents", 170), ("build.py install", "maintainer: live links to dist/", 290)]:
         b.append(card(cols[3], y + ty - 50, W, 74, c))
         b.append(text(cols[3] + 18, y + ty - 22, d, c, 14, "mono", weight=600))
         b.append(text(cols[3] + 18, y + ty, who, c, 13, fill=c["muted"]))
-    b.append(text(cols[3] + 18, y + 362, "relative symlinks into", c, 12, fill=c["muted"]))
-    b.append(text(cols[3] + 18, y + 380, "~/.agents, one source", c, 12, "mono", c["muted"]))
+    b.append(text(cols[3] + 18, y + 362, "one copy in ~/.agents/skills,", c, 12, fill=c["muted"]))
+    b.append(text(cols[3] + 18, y + 380, "agents link to it", c, 12, fill=c["muted"]))
     for i in range(len(ups)):
         b.append(curve(cols[0] + W, 103 + i * 74, cols[1] - 4, 210, c))
     b.append(curve(cols[0] + W, 72 + 4 * 74 + 39, cols[1] - 4, 72 + 4 * 74 + 39, c))
@@ -333,7 +359,7 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     b.append(curve(cols[2] + W, 257, cols[3] - 4, 103, c))
     b.append(f'<path class="flow" d="M{cols[3] + 40},{72 + 62} L{cols[3] + 40},{72 + 120 - 2}" stroke="{c["muted"]}" stroke-width="1.6" marker-end="url(#arrow)"/>')
     b.append(f'<path class="flow" d="M{cols[3] + 40},{72 + 194} L{cols[3] + 40},{72 + 240 - 2}" stroke="{c["muted"]}" stroke-width="1.6" marker-end="url(#arrow)"/>')
-    return svg(1200, 480, "Build pipeline: pin upstreams, apply patches, build dist, install for five CLIs", "\n".join(b), c)
+    return svg(1200, 480, f"Build pipeline: pin upstreams, apply patches, build dist, install for {N_AGENTS} agents", "\n".join(b), c)
 
 
 # ---------- skill map ----------
@@ -370,6 +396,37 @@ def skill_map(c: dict, info: dict[str, dict]) -> str:
     return svg(1200, ly + 44, f"Skill map: {len(info)} skills grouped by job, colored by source", "\n".join(b), c)
 
 
+# ---------- README blocks ----------
+
+def agents_table() -> str:
+    rows = ["| Agent | Id | Detected when | Reads skills from |", "|---|---|---|---|"]
+    home = str(Path.home())
+    short = lambda p: str(p).replace(home, "~")
+    for a in AGENTS:
+        when = [f"`{short(a.home)}`"] + [f"`{short(d)}`" for d in a.check_dir]
+        text = (" or " if a.operator == "OR" else " and ").join(when) + (" exists" if len(when) == 1 else " exist" if a.operator == "AND" else " exists")
+        if a.check_binary:
+            text += (" or " if a.operator == "OR" else ", and ") + ", ".join(f"`{b}`" for b in a.check_binary) + " on PATH"
+        rows.append(f"| {a.label} | `{a.id}` | {text} | `{short(a.skills)}` |")
+    table = "\n".join(rows)
+    if len(AGENTS) <= 10:
+        return table
+    return f"<details>\n<summary>All {len(AGENTS)} agents</summary>\n\n{table}\n\n</details>"
+
+
+def update_readme() -> None:
+    path = ROOT / "README.md"
+    text = path.read_text()
+    blocks = {"agents:table": agents_table(), "agents:count": N_AGENTS}
+    for key, value in blocks.items():
+        pattern = re.compile(rf"(<!-- {key} -->)(.*?)(<!-- /{key} -->)", re.S)
+        if not pattern.search(text):
+            raise SystemExit(f"README.md has no <!-- {key} --> block")
+        sep = "\n" if key == "agents:table" else ""
+        text = pattern.sub(lambda m: m.group(1) + sep + value + sep + m.group(3), text)
+    path.write_text(text)
+
+
 def main() -> None:
     info = skills_data()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -380,6 +437,8 @@ def main() -> None:
         (OUT / f"pipeline-{theme}.svg").write_text(pipeline(c, len(info), n_own))
         (OUT / f"skills-{theme}.svg").write_text(skill_map(c, info))
     print(f"wrote {len(list(OUT.glob('*.svg')))} SVGs to {OUT.relative_to(ROOT)}")
+    update_readme()
+    print("updated README.md agent blocks")
 
 
 if __name__ == "__main__":
