@@ -1,0 +1,5 @@
+interface:
+  display_name: PFD
+  short_description: Perception-First Design analysis (run with /pfd)
+policy:
+  allow_implicit_invocation: false

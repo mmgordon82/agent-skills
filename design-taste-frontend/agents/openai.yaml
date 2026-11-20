@@ -1,0 +1,5 @@
+interface:
+  display_name: Taste
+  short_description: Taste-skill website builder (run with /design-taste-frontend)
+policy:
+  allow_implicit_invocation: false
