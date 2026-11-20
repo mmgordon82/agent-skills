@@ -1,12 +1,39 @@
-Why: A trigger-first description.
+Why: A trigger-first description, and the cross-agent loading rules this set learned.
 
 Problem: Codex shows about 80 characters of a description. Upstream's starts with "Writing documents
 for agents.", so the words that should trigger it (skills, AGENTS.md, CLAUDE.md) fall after the cut.
+Upstream also writes for one loader; the same skill folder loads in Claude Code, Codex, Grok, Kimi Code
+and Pi, which differ on description length, YAML strictness and how a skill becomes user-invoked.
 
-Change: description "Use when creating or editing skills, AGENTS.md, or CLAUDE.md."
+Change: description "Use when creating or editing skills, AGENTS.md, or CLAUDE.md." SKILL-MECHANICS.md
+gains an "Across agents" section: Codex's ~80 characters, quoting descriptions that contain ": ",
+disable-model-invocation plus agents/openai.yaml for Codex, AGENTS.md pointers by SKILL.md path, a bold
+must-read line, one copy on disk.
 
-Reapply: if upstream's description now starts with its trigger words, drop this patch.
+Keep when rebasing: each rule in that section is a loader fact the rest of the skill doesn't state.
 
+Reapply: if upstream's description now starts with its trigger words, drop that hunk. Drop any
+"Across agents" rule upstream now covers; keep the rest as one section at the end of SKILL-MECHANICS.md.
+
+diff --git a/writing-for-agents/SKILL-MECHANICS.md b/writing-for-agents/SKILL-MECHANICS.md
+index 9cdbdb2..fe12416 100644
+--- a/writing-for-agents/SKILL-MECHANICS.md
++++ b/writing-for-agents/SKILL-MECHANICS.md
+@@ -20,3 +20,14 @@ The invocation cut of splitting (the sequence cut lives in `SKILL.md`): split of
+ ## Router skills
+ 
+ When user-invoked skills multiply past what you can remember, that piled-up cognitive load is cured by a **router skill**: one user-invoked skill that names the others and when to reach for each, so the human has one skill to remember instead of many. It can only hint, never fire them: user-invoked skills have no description, so nothing but the human can reach them.
++
++## Across agents
++
++One skill folder loads in Claude Code, Codex, Grok, Kimi Code and Pi, and their loaders differ:
++
++- **Codex shows about 80 characters of the description.** The leading word has to sit inside them.
++- **Quote a description that contains `: `.** `description: Use for X: Y` is invalid YAML. Claude Code tolerates it; strict loaders drop the skill without a word.
++- **User-invoked takes two settings.** `disable-model-invocation: true` covers Claude Code, Grok, Kimi Code and Pi. Codex ignores it and needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`.
++- **A must-fire skill also gets a line in `AGENTS.md`** naming its `SKILL.md` path. A one-line rule plus the path fires more reliably than the description alone.
++- **A must-read reference file gets a bold line at the top of `SKILL.md`**, with when to read it. A mention in passing gets skipped.
++- **One copy on disk.** The real folder lives in `~/.agents/skills` and every agent's skills dir links to it; copies drift.
 diff --git a/writing-for-agents/SKILL.md b/writing-for-agents/SKILL.md
 index a37608d..ce81994 100644
 --- a/writing-for-agents/SKILL.md

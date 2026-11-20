@@ -1,9 +1,9 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
-  <img alt="agent-skills: one opinionated, token-lean skill set shared by every registered coding agent. Example patch: the taste-skill description becomes typed-only, saving about 230 tokens per session." src="docs/assets/hero-light.svg" width="100%">
+  <img alt="agent-skills: one opinionated skill set in one folder, ~/.agents/skills, read by Claude Code, Codex, Grok, Kimi Code and Pi." src="docs/assets/hero-light.svg" width="100%">
 </picture>
 
-My skill set for coding agents.
+My skill set for coding agents. A skill is a folder with a `SKILL.md` that an agent loads when a task matches it, or when you type `/name`.
 
 I use several coding agents every day, and their quality wasn't uniform. Part of the reason was the skills: each agent loaded a different set, and some skills were written for one vendor's models, with that vendor's model names and flags, which put the other agents off applying them. This repo gives every agent the same skills, written so any of them can follow them.
 
@@ -11,20 +11,70 @@ Three things set it apart:
 
 - **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, read by **<!-- agents:list -->Claude Code, Codex, Grok, Kimi Code and Pi<!-- /agents:list -->**, and installable into any other agent npx skills supports. Every agent works from the same directories, the same structure and the same rules.
 - **Token-lean.** Every model-invocable skill puts its description into every session before you type a word. Building this set, I cut 174 skills: about 11k tokens of skill listings that loaded at every session start. Long skills I call by name are now typed-only, and the shared `AGENTS.md` went from 10–11.5k characters per CLI to under 8k. [`skill-critique`](skills/skill-critique/SKILL.md) measures this for your own setup and reviews every skill on the machine.
-- **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, so you can see each opinion and drop the ones you don't share.
+- **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, or a fork with its own change notes where the change is the whole skill, so you can see each opinion and drop the ones you don't share.
 
+## Contents
+
+- [Quick start](#quick-start)
 - [What's cooking](#whats-cooking)
 - [How it works](#how-it-works)
-- [Quick start](#quick-start)
 - [The skills](#the-skills)
 - [What I patched, and why](#what-i-patched-and-why)
 - [Customize](#customize)
-- [Releases](#releases)
+- [Write your own skill](#write-your-own-skill)
 - [Recommended upstream packs](#recommended-upstream-packs-not-shipped-here)
 - [AGENTS.md template](#agentsmd-template)
-- [Working with patches](#working-with-patches)
-- [Writing skills that load reliably](#writing-skills-that-load-reliably)
-- [Repo layout](#repo-layout) · [Licenses](#licenses)
+- [Licenses](#licenses)
+- [Maintaining this repo](docs/maintaining.md): build commands, patches, releases, repo layout
+
+## Quick start
+
+### With npx skills
+
+Requires Node.js 22.20 or newer. [npx skills](https://github.com/vercel-labs/skills) installs the latest release and asks which agents to link it into:
+
+```sh
+npx skills add mmgordon82/agent-skills#release -g --skill '*'
+```
+
+Keep `#release`. It is the built set; the default branch holds the sources, and installing it gets only my own skills.
+
+Using the [recommended upstream packs](#recommended-upstream-packs-not-shipped-here) too? Install them first and this set last, so its patched versions replace theirs where names match.
+
+### From a release archive
+
+With the [GitHub CLI](https://cli.github.com/):
+
+```sh
+mkdir -p ~/.agents/skills
+gh release download --repo mmgordon82/agent-skills -p '*.tar.gz' -O - | tar xz -C ~/.agents/skills
+```
+
+Or download the `.tar.gz` or `.zip` from the [releases page](https://github.com/mmgordon82/agent-skills/releases) and extract it there. Skills with the same name are replaced.
+
+Codex, Kimi Code and Pi read `~/.agents/skills`. Claude Code reads `~/.claude/skills` and Grok `~/.grok/skills`, so link the skills into the dir of each one you use:
+
+```sh
+mkdir -p ~/.claude/skills && for s in ~/.agents/skills/*/; do ln -sfn "${s%/}" ~/.claude/skills/; done   # Claude Code
+mkdir -p ~/.grok/skills && for s in ~/.agents/skills/*/; do ln -sfn "${s%/}" ~/.grok/skills/; done       # Grok
+```
+
+A real folder with the same name already there is left alone, and `ln` reports it.
+
+### From source
+
+Requires `git`, [uv](https://docs.astral.sh/uv/) and Node.js 22.20 or newer; uv installs Python 3.11+ and the script's dependencies on first run.
+
+```sh
+git clone https://github.com/mmgordon82/agent-skills && cd agent-skills
+uv run build.py build                     # clone pins into .cache/, apply patches, write dist/
+npx skills add ./dist -g --skill '*'      # once: copy into ~/.agents/skills, link the agents you pick
+uv run build.py install --force           # point ~/.agents/skills/<skill> at dist/: rebuilds go live
+```
+
+`npx skills` handles agents: it detects them, links each skill into their skills dirs and keeps a lock file. `build.py install` only replaces the copies in `~/.agents/skills` with links into `dist/`, so `build.py build` updates every agent at once, and creates the settings file. Without `--force` it skips skills that already exist. Rerunning it is safe.
+
+All `build.py` commands: [docs/maintaining.md](docs/maintaining.md#buildpy-commands).
 
 ## What's cooking
 
@@ -60,55 +110,13 @@ Copying and editing works once. After that your copy drifts from upstream, and n
 3. **Build.** `build.py` checks out each pin, copies the mapped paths, applies the patches, adds [`skills/`](skills), and writes `dist/`. The old `dist/` is replaced only after a fully successful build.
 4. **Install.** [npx skills](https://github.com/vercel-labs/skills) puts one copy of each skill in `~/.agents/skills` and links it into the skills dir of every agent you pick. When you build from source, `build.py install` points those copies at `dist/`, so each rebuild is live in every agent.
 
-`dist/` is gitignored. It includes upstream assets (one skill alone is 39 MB), so you build it locally or download a [release](#releases).
-
-## Quick start
-
-**With [`npx skills`](https://github.com/vercel-labs/skills)** (installs the built release set from the `release` branch):
-
-```sh
-npx skills add mmgordon82/agent-skills#release -g --skill '*' -y    # rerun weekly to get new skills too
-npx skills add mmgordon82/agent-skills#20261119 -g --skill '*' -y   # or pin one release
-```
-
-Use `#`, not `@`: `@20261119` is read as a skill name. `npx skills update -g` refreshes skills you already have but never adds new ones, so rerun `add` to pick those up.
-
-**From a release archive:**
-
-```sh
-mkdir -p ~/.agents/skills
-gh release download --repo mmgordon82/agent-skills -p '*.tar.gz' -O - | tar xz -C ~/.agents/skills
-```
-
-Or download the `.tar.gz` or `.zip` from the [releases page](https://github.com/mmgordon82/agent-skills/releases) and extract it into your skills directory. Skills with the same name are replaced. Agents that don't read `~/.agents/skills` need a link per skill in their own dir; `npx skills` does that for you.
-
-**From source** (requires `git` and [uv](https://docs.astral.sh/uv/); uv installs Python 3.11+ and the script's dependencies on first run):
-
-```sh
-git clone https://github.com/mmgordon82/agent-skills && cd agent-skills
-uv run build.py build                     # clone pins into .cache/, apply patches, write dist/
-npx skills add ./dist -g --skill '*' -y   # once: copy into ~/.agents/skills, link the agents you use
-uv run build.py install --force           # point ~/.agents/skills/<skill> at dist/: rebuilds go live
-```
-
-`npx skills` handles agents: it detects them, links each skill into their skills dirs and keeps a lock file. `build.py install` only replaces the copies in `~/.agents/skills` with links into `dist/`, so `build.py build` updates every agent at once, and creates the settings file. Without `--force` it skips skills that already exist. Rerunning it is safe.
-
-All commands:
-
-| Command | What it does |
-|---|---|
-| `build` | Builds `dist/` from pins, patches and `skills/`. Fails without touching `dist/` if any patch doesn't apply. |
-| `verify [--against DIR]` | Builds to a temp dir and diffs every skill against an installed copy (default `~/.agents/skills`). Shows exactly which files differ; missing or changed skills exit 1. |
-| `diff <upstream> [--from DIR]` | Rewrites that upstream's patches from edited skills (default `dist/`). Keeps each patch's `Why:` header. |
-| `bump [UPSTREAM…] [--rev SHA]` | Moves pins to upstream `HEAD` (default: all). A pin moves only if all its patches still apply; otherwise it stays, and the command exits 1. |
-| `workspace <upstream> <dir>` | Starts rebuilding broken patches: lays out the upstream at its pin as a git repo, applies its patches (3-way where they conflict) and lists which to rewrite from their Why. |
-| `install [--target] [--force]` | Points every `~/.agents/skills/<skill>` at `dist/<skill>` (live development; agents link there via npx skills). Creates the settings file if missing. |
+Building from source, releases and patch maintenance: [docs/maintaining.md](docs/maintaining.md).
 
 ## The skills
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/skills-dark.svg">
-  <img alt="Skill map: 26 skills grouped into Workflow, Agent setup, Design and UI, Ship and secure, and Writing, colored by source: own, derived fork, or pinned upstream plus patch." src="docs/assets/skills-light.svg" width="100%">
+  <img alt="Skill map: every skill grouped by job (Workflow, Used by /poteto-mode, Agent setup, Design and UI, Ship and secure, Writing), colored by source: own, derived fork, or pinned upstream." src="docs/assets/skills-light.svg" width="100%">
 </picture>
 
 A `/` before a name means the skill is **typed-only**: it runs when you type `/name` and the model never loads it on its own. These are long skills you want on demand, and keeping them typed-only means their descriptions don't cost context in every session.
@@ -125,6 +133,24 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `/reflect` | pstack | Reads the session transcript for lasting lessons and turns each into an edit on an existing skill. |
 | `setup-pstack` | pstack + patch | Map pstack roles to *your* models through tiers (strong / fast / panel). |
 | `adversarial-review` | own | Runs a different agent CLI (Claude, Codex, Grok, Kimi, Pi or any other) headless and read-only to attack your work: bugs, holes, unproven claims, cases you didn't expect. You verify each finding before acting. |
+
+### Used by /poteto-mode
+
+pstack skills that `/poteto-mode` and the other pstack skills call by name. All typed-only.
+
+| Skill | Source | What it does |
+|---|---|---|
+| `/interrogate` | pstack | Adversarial multi-model review: adversaries try to break a change, and only findings proven by a run survive. |
+| `/how` | pstack | How a subsystem works and where code should live: architecture, runtime flow, ownership. |
+| `/why` | pstack | Why something is the way it is: decisions, tradeoffs, regressions, with citations. |
+| `/figure-it-out` | pstack | An auditable playbook for work no narrower playbook fits: big migrations, multi-part changes. |
+| `/show-me-your-work` | pstack | A decision log (what, why, evidence, result) for long or unattended runs. |
+| `/ketchup` | pstack | Catches you up on what changed in the chat since your last message, and what waits on you. |
+| `/benchmark-checklist` | pstack | Vets a performance measurement before you report or act on it. |
+| `/tdd` | pstack | Test-first, only when asked or when the bug has a cheap local test. |
+| `/create-verification-skill` | pstack | Generates a project skill that drives your app the way a user does. |
+| `/create-formal-verification-skill` | pstack | Generates a project skill that formally verifies the riskiest code. |
+| `/principle-*` | pstack | The engineering principles `/poteto-mode` applies by name: laziness protocol, fix root causes, prove it works and the rest. |
 
 ### Agent setup
 
@@ -166,7 +192,7 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 
 ## What I patched, and why
 
-Each line is the first line of the patch's `Why:` header. Below it, every header explains the problem, what the patch changes, what to keep when rebasing, and how to rebuild it on a new upstream version, so a broken patch can be rewritten from intent ([how](#when-an-upstream-breaks-patches)).
+Each line is the first line of the patch's `Why:` header. Below it, every header explains the problem, what the patch changes, what to keep when rebasing, and how to rebuild it on a new upstream version, so a broken patch can be rewritten from intent ([how](docs/maintaining.md#when-an-upstream-breaks-patches)).
 
 | Patch | Why |
 |---|---|
@@ -182,6 +208,8 @@ Each line is the first line of the patch's `Why:` header. Below it, every header
 | [pstack/unslop](patches/pstack/unslop.patch) | Let the model invoke it, with a trigger-first description; add rules 34-41 and "How to apply" from three deleted anti-slop skills, plus an STE lint script. |
 | [taste-skill/design-taste-frontend](patches/taste-skill/design-taste-frontend.patch) | Typed-only /design-taste-frontend with a one-line description, in Claude and in Codex. |
 
+Upstream skills that are typed-only (`disable-model-invocation: true`) but ship no Codex policy get `agents/openai.yaml` from the build, so Codex treats them as typed-only too. That needs no patch.
+
 Two upstreams became forks because their diffs would have been the whole skill:
 
 - **impeccable** ([CHANGES.md](skills/impeccable/CHANGES.md)) is a trimmed fork. It adds `usability.md`, a no-fake-data rule, mobile viewport rules, and online-by-default assets.
@@ -189,10 +217,16 @@ Two upstreams became forks because their diffs would have been the whole skill:
 
 ## Customize
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/settings-dark.svg">
+  <img alt="settings.toml sections and the skills that read them: workdir (agent-workdir, handoff, adversarial-review, skill-critique), handoff (handoff), review (adversarial-review), offline (airgap), validation (run-validation), agents (skill-critique), and your own sections for your own skills." src="docs/assets/settings-light.svg" width="100%">
+</picture>
+
 Skills read one settings file, the same for every agent: `${XDG_CONFIG_HOME:-~/.config}/agent-skills/settings.toml`. `build.py install` creates it from [`settings.example.toml`](settings.example.toml) if it doesn't exist and never overwrites it. Installed another way (`npx skills`, a release archive)? Create it yourself:
 
 ```sh
-mkdir -p ~/.config/agent-skills && $EDITOR ~/.config/agent-skills/settings.toml
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/agent-skills"
+"${EDITOR:-nano}" "${XDG_CONFIG_HOME:-$HOME/.config}/agent-skills/settings.toml"
 ```
 
 with this content, then change what you need:
@@ -272,32 +306,101 @@ and paste this into your skill's `SKILL.md`:
 No file or no key → use the defaults below. A broken value → use the default and tell the user which key to fix.
 ```
 
-## Releases
+## Write your own skill
 
-[`.github/workflows/release.yml`](.github/workflows/release.yml) runs every Monday and on manual dispatch (**Actions → release → Run workflow**):
+A skill is a folder with a `SKILL.md`: frontmatter that says when to load it, then the instructions. Put it in `~/.agents/skills/<name>/` and link it into your other agents like any skill here.
 
-1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released until the patches are rebuilt ([how](#when-an-upstream-breaks-patches)).
-2. `build.py build` writes `dist/`.
-3. [`ci/release.py`](ci/release.py) compares `dist/` with the last published release, as git trees (file contents and modes). If nothing changed (for example, an upstream commit only touched its CI config), it stops. No release.
-4. Otherwise it commits the moved pins to `main`, then commits `dist/` as one new commit on the **`release` branch**: the skill folders at the root, nothing else, with a `Source: <main sha>` trailer. So `git diff 20261119 20261126` (or GitHub's compare view) shows exactly what changed for users between two releases, and `npx skills add …#release` installs it.
-5. It tags that commit with the date (`20261119`; a second release that day is `20261119.2`) and publishes a GitHub release with `agent-skills-<version>.tar.gz` and `.zip`. Each archive holds the skill folders, ready to extract into a skills directory.
-6. The release notes are a bullet-point changelog that OpenAI `gpt-6.1-terra` writes from the diff between the two release commits, the upstream commit logs and this repo's commits. If generation fails, the release still publishes with fallback notes, then the job exits 1 to alert you. The prompt and model are in `ci/release.py`.
+Write the decisions the model wouldn't make by itself, not a tutorial; it already knows the language. Part of a skill for how I want Python written:
 
-Setup: add an `OPENAI_API_KEY` repository secret. To preview a release locally: `OPENAI_API_KEY=… uv run ci/release.py --dry-run`. A run that pushed the branch but failed to publish finishes the same release on the next run.
+````markdown
+---
+name: python-style
+description: "Use when writing or reviewing Python: functional core, pathlib, chosen libraries, measured speed."
+---
+
+# Python style
+
+Defaults. Break one only for a reason you state in the change.
+
+## Functional core, thin shell
+- Logic lives in pure functions: data in, data out. I/O, env and the clock stay in `main()` and CLI handlers.
+- Return new values instead of mutating arguments. Records are `@dataclass(frozen=True)`.
+- A class needs state that changes. A bag of functions is a module.
+
+## Files
+- `pathlib.Path` end to end: `read_text()`, `write_text()`, `rglob()`. No `os.path` string joins.
+- A write that must survive a crash goes to a temp file, then `tmp.replace(path)`.
+
+## Libraries
+| Need | Use |
+|---|---|
+| CLI | typer |
+| HTTP | httpx |
+| Parsing at boundaries | pydantic |
+| Scripts | uv, with dependencies inline (PEP 723) |
+
+## Fast, when it matters
+- Measure first (`cProfile`, `python -X importtime`) and report the number before and after.
+- Fix the data structure before the code: a set or dict lookup, not a scan of a list.
+…
+````
+
+Every line is a stance you can disagree with, and that's the point. Private values (hosts, paths) go in the [settings file](#customize), not the skill.
+
+To write one, ask your agent: it loads [`writing-for-agents`](#writing) for any skill, `AGENTS.md` or `CLAUDE.md` work. It covers triggers, what a skill costs per session, when to split, pruning, and how to make a skill load the same way in every agent. Then `/skill-critique` measures what your whole set costs and finds collisions.
 
 ## Recommended upstream packs (not shipped here)
 
-Skills I use unmodified. Install them from their source so you get their updates:
+Skills I use unmodified. Install them from their source so you get their updates. Install them first, in any order, and this set last ([Quick start](#quick-start)): its patched versions then replace pstack's where names match, and its `handoff` replaces mattpocock's.
 
-| Pack | What you get | Install |
-|---|---|---|
-| [backnotprop/pstack](https://github.com/backnotprop/pstack) | The rest of pstack: 58 principle and workflow skills. `/poteto-mode` refers to them, so install the full pack first, then this repo's set, so its patched versions replace pstack's. | `npx skills add backnotprop/pstack -g --skill '*'` |
-| [emilkowalski/skills](https://github.com/emilkowalski/skills) | 20 animation and design-engineering skills: `animate`, `choreograph`, `gestures`, `review-animations`, `apple-design`, `mobile-native`… | `npx skills add emilkowalski/skills -g` |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | Engineering workflow: `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grilling`, `to-spec`, `wizard`, plus typed-only long-form writing (`writing-fragments` → `writing-beats` / `writing-shape`). Its `handoff` has the same name as this repo's; add this repo's set after it to keep mine. | `npx skills add mattpocock/skills -g` |
-| [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | Local design research database that `impeccable` consults. | `npx skills add nextlevelbuilder/ui-ux-pro-max-skill -g` |
-| [dzhng/jevgrep](https://github.com/dzhng/jevgrep) | Answers "how does X work in this repo" with ranked excerpts before grep. | `npx skills add dzhng/jevgrep -g` |
-| [obra/superpowers](https://github.com/obra/superpowers) | `brainstorming` (I also run the full plugin in Claude Code). | `npx skills add obra/superpowers -g` |
-| [rea-agents](https://www.npmjs.com/package/rea-agents) | Reverse Engineer Anything: MCP server and skill for binaries, apps, firmware and web bundles. It manages its own skill copy. | `npm i -g rea-agents && rea setup` |
+- **[backnotprop/pstack](https://github.com/backnotprop/pstack)**: the pstack skills this set doesn't ship. Every skill `/poteto-mode` calls is already here.
+  Examples: `statechart`, `teach`, `sharpen`, `recall`, `blast-radius`.
+
+  ```sh
+  npx skills add backnotprop/pstack -g --skill '*'
+  ```
+
+- **[emilkowalski/skills](https://github.com/emilkowalski/skills)**: animation and design-engineering skills.
+  Examples: `animate`, `choreograph`, `gestures`, `review-animations`, `apple-design`, `mobile-native`.
+
+  ```sh
+  npx skills add emilkowalski/skills -g
+  ```
+
+- **[mattpocock/skills](https://github.com/mattpocock/skills)**: engineering workflow, plus typed-only long-form writing. Its `handoff` has the same name as this repo's.
+  Examples: `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grilling`, `to-spec`, `wizard`, `writing-fragments`.
+
+  ```sh
+  npx skills add mattpocock/skills -g
+  ```
+
+- **[nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)**: a local design research database that `impeccable` consults.
+  Examples: `ui-ux-pro-max`.
+
+  ```sh
+  npx skills add nextlevelbuilder/ui-ux-pro-max-skill -g
+  ```
+
+- **[dzhng/jevgrep](https://github.com/dzhng/jevgrep)**: repo Q&A: answers "how does X work here" with ranked excerpts before grep.
+  Examples: `jevgrep`.
+
+  ```sh
+  npx skills add dzhng/jevgrep -g
+  ```
+
+- **[obra/superpowers](https://github.com/obra/superpowers)**: workflow skills (I also run the full plugin in Claude Code).
+  Examples: `brainstorming`.
+
+  ```sh
+  npx skills add obra/superpowers -g
+  ```
+
+- **[rea-agents](https://www.npmjs.com/package/rea-agents)**: reverse engineering: an MCP server and skill for binaries, apps, firmware and web bundles. It manages its own skill copy.
+  Examples: `reverse-engineer-anything`.
+
+  ```sh
+  npm i -g rea-agents && rea setup
+  ```
 
 The skills CLI may write real copies into `~/.claude/skills`. To keep one source, move them to `~/.agents/skills` and symlink them back. `/skill-critique` finds these copies for you.
 
@@ -317,87 +420,18 @@ The skills CLI may write real copies into `~/.claude/skills`. To keep one source
 | Agent work dir | Output never goes into a checkout | `agent-workdir` |
 | Building sites, UIs & content | `impeccable` + `usability.md`; no unrequested copy; labs keep their difficulty | `impeccable` |
 
-Use one file for every CLI:
+Use one file for every CLI. Download it, fill in the `<PLACEHOLDERS>`, then link it into each agent you use:
 
 ```sh
-cp AGENTS.template.md ~/.agents/AGENTS.md            # then fill in the <PLACEHOLDERS>
-ln -sf ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
-ln -sf ~/.agents/AGENTS.md ~/.codex/AGENTS.md
-ln -sf ~/.agents/AGENTS.md ~/.grok/AGENTS.md
-mkdir -p ~/.pi/agent && ln -sf ~/.agents/AGENTS.md ~/.pi/agent/AGENTS.md
+mkdir -p ~/.agents
+test -e ~/.agents/AGENTS.md || curl -fsSL https://raw.githubusercontent.com/mmgordon82/agent-skills/main/AGENTS.template.md -o ~/.agents/AGENTS.md
+ln -s ~/.agents/AGENTS.md ~/.claude/CLAUDE.md      # Claude Code
+ln -s ~/.agents/AGENTS.md ~/.codex/AGENTS.md       # Codex
+ln -s ~/.agents/AGENTS.md ~/.grok/AGENTS.md        # Grok
+ln -s ~/.agents/AGENTS.md ~/.pi/agent/AGENTS.md    # Pi
 ```
 
-Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CLIs, MCP wrapper scripts) belong in a private `local-tooling` skill that you don't publish. `run-validation` reads it by path when it exists.
-
-## Working with patches
-
-**Change a patched skill:**
-
-```sh
-uv run build.py build
-$EDITOR dist/unslop/SKILL.md             # edit the built copy
-uv run build.py diff pstack              # writes patches/pstack/unslop.patch, keeps its Why: line
-uv run build.py build && git add patches && git commit
-```
-
-To capture edits you made in your installed skills, run `diff pstack --from ~/.agents/skills`.
-
-**Patch a new upstream skill:** add it to that upstream's `paths` in `upstreams.toml`, build, edit `dist/<skill>`, then run `diff`. Add a `Why:` line at the top of the new patch.
-
-### When an upstream breaks patches
-
-An upstream release can rewrite the lines a patch touches. pstack 0.15.43 did: it rewrote the same paragraphs, renamed the model ids our patches replace, and deleted two skills' model choices outright. The weekly job then fails at the bump step and releases nothing. Rebuild the patches from their intent, not by forcing the old diff on:
-
-```sh
-uv run build.py bump pstack                       # shows the new commit and which patches fail
-# set pstack's rev in upstreams.toml to the new commit, then:
-uv run build.py workspace pstack ~/tmp/pstack-ws  # new upstream as a git repo, patches applied where they can be
-```
-
-`workspace` prints one line per patch: applies, merged (check it), or rewrite from its Why, with conflicts marked. For each patch to rewrite, read its header and redo the change on the new upstream text: keep what upstream added, restate it in the patch's terms, and drop parts upstream made unnecessary. `git -C ~/tmp/pstack-ws diff HEAD` shows your edits against plain upstream. Then:
-
-```sh
-uv run build.py diff pstack --from ~/tmp/pstack-ws   # rewrites the patches, keeps each header
-uv run build.py build && uv run tests/run.py
-```
-
-`diff` deletes a patch that has nothing left to change. Update a header when its reasoning changed, so the next rebuild starts from the right intent.
-
-`build` always starts from a clean copy of each upstream's folders at the pin, then applies the patches. Files upstream adds or deletes come and go with it; nothing from an older `dist/` survives.
-
-**Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte. Missing or changed skills exit 1.
-
-**Run development checks:** `uv run tests/run.py`. The PR/main workflow ([`check.yml`](.github/workflows/check.yml)) also builds and verifies `dist/`, and fails if the generated graphics or README agent blocks are out of date.
-
-## Writing skills that load reliably
-
-Lessons from running one skill set across the verified agents:
-
-- **Trigger words first.** Codex shows about 80 characters of a description. Start with "Use when …" and the words a user would actually say.
-- **Quote descriptions that contain `: `.** `description: Use for X: Y` is invalid YAML. Claude Code tolerates it; strict parsers drop the skill without a word.
-- **Name the path in AGENTS.md.** A one-line rule plus the explicit `SKILL.md` path loads far more reliably than a good description alone: "Before running tests… read the `run-validation` skill (`~/.agents/skills/run-validation/SKILL.md`)."
-- **Put the must-read line at the top of the skill.** A reference file the agent has to read, such as `usability.md`, gets a bold line at the top of `SKILL.md`. Mentioning it in passing is not enough.
-- **Make long skills typed-only.** They cost no context until you call them. Set it for Claude, Grok, Kimi and Pi (`disable-model-invocation`) and for Codex (`agents/openai.yaml`).
-- **One source on disk.** `~/.agents/skills` holds the real copies; everything else links to it. Duplicate copies drift.
-
-## Repo layout
-
-```
-AGENTS.template.md     global instructions, placeholders for personal parts
-settings.example.toml  defaults for ~/.config/agent-skills/settings.toml
-upstreams.toml         pins: repo, sha, license, paths
-patches/<upstream>/    one .patch per skill, each with a Why: header
-skills/                own skills, plus forks that carry their own LICENSE
-skills/skill-critique/agents.toml   the agent registry
-build.py               build · verify · diff · bump · workspace · install (uv script)
-tools/npx_agents.py    refresh the npx part of the agent registry
-ci/release.py          compare with the last release, release branch commit, changelog, archives
-tests/                 behavioral tests: uv run tests/run.py
-.github/workflows/     release.yml (weekly + manual release), check.yml (PRs and main)
-docs/graphics.py       renders docs/assets/*.svg and the README's agent blocks from the repo data
-```
-
-`docs/graphics.py` reads `upstreams.toml`, `skills/`, `patches/`, `dist/` and the agent registry, so the counts, the skill map and the agent table stay accurate. Run `uv run docs/graphics.py` after adding a skill or an agent. It fails if a skill isn't placed in a column.
+None of these overwrite anything: `curl` is skipped if the file exists, and `ln -s` fails on an existing file. Merge your current instructions into `~/.agents/AGENTS.md` first, then move the old file away. Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CLIs, MCP wrapper scripts) belong in a private `local-tooling` skill that you don't publish. `run-validation` reads it by path when it exists.
 
 ## Licenses
 
