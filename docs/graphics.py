@@ -42,11 +42,10 @@ FORKS = {"pbakaus/impeccable": ["impeccable"],
 sys.path.insert(0, str(ROOT / "skills" / "skill-critique" / "scripts"))
 from agents import load_agents  # noqa: E402
 
-# Shipped agents only (never the user's own additions), so the docs are the same on every machine.
-AGENTS = load_agents(user=False)
+# The docs name only the verified agents (shipped, never the user's own), so they read the same on
+# every machine and don't change when the npx part of the registry grows.
+AGENTS = [a for a in load_agents(user=False) if a.verified]
 LABELS = [a.label for a in AGENTS]
-NUMBER = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
-N_AGENTS = NUMBER.get(len(AGENTS), str(len(AGENTS)))
 
 
 def fit(labels: list[str], max_chars: int, sep: str = " · ") -> str:
@@ -158,11 +157,11 @@ def hero(c: dict) -> str:
     saved = sum(len(l) - 1 for l in removed) // 4
 
     b = []
-    b.append(text(64, 76, "CROSS-AGENT SKILL SET  ·  " + (fit([l.upper() for l in LABELS], 52, "  ·  ") if len(LABELS) <= 6 else f"{len(LABELS)} AGENTS"), c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.2"'))
+    b.append(text(64, 76, "CROSS-AGENT SKILL SET  ·  " + fit([l.upper() for l in LABELS], 60, "  ·  "), c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.2"'))
     b.append(text(60, 150, "agent-skills", c, 64, weight=700, extra='letter-spacing="-1.5"'))
     b.append(text(64, 190, "One opinionated skill set for every coding agent.", c, 20, fill=c["muted"]))
     facts = [
-        ("own", "Cross-agent", f"One copy on disk, one layout, ready for {N_AGENTS} agents."),
+        ("own", "Cross-agent", "One copy on disk and one layout for every coding agent."),
         ("add", "Token-lean", "174 skills cut: ~11k fewer tokens of skill listings."),
         ("patched", "Opinionated", "Tailored to me. Every patch says why."),
     ]
@@ -221,13 +220,12 @@ def chip(cx, cy, rot, owner, repo, sub, color, c, delay):
 
 def pot(c: dict, info: dict) -> str:
     ups = upstreams()
-    patches = {name: len(list((ROOT / "patches" / name).glob("*.patch"))) for name in ups}
     own = sorted(s for s, i in info.items() if i["kind"] == "own")
     ingredients = []
     for name, u in ups.items():
         owner, repo = u["repo"].split("/")
         n = len({d.split("/")[0] for d in u["paths"]})
-        ingredients.append((owner + "/", repo, f"{n} skill{'s' * (n > 1)} + {patches[name]} patch{'es' * (patches[name] > 1)}", c["patched"]))
+        ingredients.append((owner + "/", repo, f"{n} skill{'s' * (n > 1)}, patched", c["patched"]))
     for repo_full, names in FORKS.items():
         owner, repo = repo_full.split("/")
         ingredients.append((owner + "/", repo, f"{len(names)} fork{'s' * (len(names) > 1)}", c["derived"]))
@@ -269,9 +267,8 @@ def pot(c: dict, info: dict) -> str:
     b.append(card(880, 388, 280, 112, c, stroke=c["add"]))
     b.append(text(900, 416, "SERVES", c, 12, "mono", c["muted"], 600, extra='letter-spacing="1.5"'))
     b.append(text(900, 442, f"{len(info)} skills, one copy", c, 15, weight=700))
-    half = (len(LABELS) + 1) // 2
-    b.append(text(900, 464, fit(LABELS[:half], 34), c, 13, fill=c["muted"]))
-    b.append(text(900, 482, fit(LABELS[half:], 34), c, 13, fill=c["muted"]))
+    b.append(text(900, 464, " · ".join(LABELS[:3]), c, 13, fill=c["muted"]))
+    b.append(text(900, 482, " · ".join(LABELS[3:]) + " and more", c, 13, fill=c["muted"]))
     b.append(curve(320, 444, 380, 420, c))
     b.append(curve(822, 420, 876, 444, c))
 
@@ -289,7 +286,7 @@ def pot(c: dict, info: dict) -> str:
 
 def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     ups = upstreams()
-    patches = {name: len(list((ROOT / "patches" / name).glob("*.patch"))) for name in ups}
+    patched = [name for name in ups if any((ROOT / "patches" / name).glob("*.patch"))]
     b = []
     cols = [40, 330, 620, 910]
     W = 250
@@ -314,14 +311,13 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     b.append(card(cols[1], y, W, 4 * 74 - 12, c))
     b.append(text(cols[1] + 18, y + 30, "patches/", c, 15, "mono", c["patched"], 600))
     yy = y + 62
-    for name, n in patches.items():
+    for name in patched:
         b.append(text(cols[1] + 30, yy, f"{name}/", c, 13, "mono"))
-        b.append(text(cols[1] + W - 18, yy, f"{n} patch{'es' if n > 1 else ''}", c, 12, "mono", c["muted"], anchor="end"))
         yy += 28
     b.append(f'<line x1="{cols[1] + 18}" y1="{yy - 6}" x2="{cols[1] + W - 18}" y2="{yy - 6}" stroke="{c["line"]}"/>')
     b.append(text(cols[1] + 18, yy + 16, "one .patch per skill,", c, 13, fill=c["muted"]))
     b.append(text(cols[1] + 18, yy + 34, "each opens with a Why: line", c, 13, fill=c["muted"]))
-    b.append(text(cols[1] + 18, yy + 60, "Why: generic model tiers", c, 12, "mono", c["patched"]))
+    b.append(text(cols[1] + 18, yy + 60, "Why: model tiers, not vendor ids", c, 12, "mono", c["patched"]))
     b.append(text(cols[1] + 18, yy + 78, "Why: typed-only /pfd", c, 12, "mono", c["patched"]))
     b.append(text(cols[1] + 18, yy + 96, "Why: trigger words first", c, 12, "mono", c["patched"]))
     b.append(card(cols[1], y + 4 * 74 + 8, W, 62, c, stroke=c["add"]))
@@ -345,7 +341,7 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     b.append(card(cols[3], y, W, 62, c, stroke=c["add"]))
     b.append(text(cols[3] + 18, y + 26, "dist/", c, 15, "mono", c["add"], 600))
     b.append(text(cols[3] + 18, y + 47, f"{n_skills} skills, or a weekly release", c, 13, fill=c["muted"]))
-    for d, who, ty in [("npx skills add", f"…#release · {len(AGENTS)} agents", 170), ("build.py install", "maintainer: live links to dist/", 290)]:
+    for d, who, ty in [("npx skills add", "…#release · any agent", 170), ("build.py install", "maintainer: live links to dist/", 290)]:
         b.append(card(cols[3], y + ty - 50, W, 74, c))
         b.append(text(cols[3] + 18, y + ty - 22, d, c, 14, "mono", weight=600))
         b.append(text(cols[3] + 18, y + ty, who, c, 13, fill=c["muted"]))
@@ -359,7 +355,7 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
     b.append(curve(cols[2] + W, 257, cols[3] - 4, 103, c))
     b.append(f'<path class="flow" d="M{cols[3] + 40},{72 + 62} L{cols[3] + 40},{72 + 120 - 2}" stroke="{c["muted"]}" stroke-width="1.6" marker-end="url(#arrow)"/>')
     b.append(f'<path class="flow" d="M{cols[3] + 40},{72 + 194} L{cols[3] + 40},{72 + 240 - 2}" stroke="{c["muted"]}" stroke-width="1.6" marker-end="url(#arrow)"/>')
-    return svg(1200, 480, f"Build pipeline: pin upstreams, apply patches, build dist, install for {N_AGENTS} agents", "\n".join(b), c)
+    return svg(1200, 480, "Build pipeline: pin upstreams, apply patches, build dist, install with npx skills into any agent", "\n".join(b), c)
 
 
 # ---------- skill map ----------
@@ -408,16 +404,13 @@ def agents_table() -> str:
         if a.check_binary:
             text += (" or " if a.operator == "OR" else ", and ") + ", ".join(f"`{b}`" for b in a.check_binary) + " on PATH"
         rows.append(f"| {a.label} | `{a.id}` | {text} | `{short(a.skills)}` |")
-    table = "\n".join(rows)
-    if len(AGENTS) <= 10:
-        return table
-    return f"<details>\n<summary>All {len(AGENTS)} agents</summary>\n\n{table}\n\n</details>"
+    return "\n".join(rows)
 
 
 def update_readme() -> None:
     path = ROOT / "README.md"
     text = path.read_text()
-    blocks = {"agents:table": agents_table(), "agents:count": N_AGENTS}
+    blocks = {"agents:table": agents_table(), "agents:list": joined(LABELS)}
     for key, value in blocks.items():
         pattern = re.compile(rf"(<!-- {key} -->)(.*?)(<!-- /{key} -->)", re.S)
         if not pattern.search(text):

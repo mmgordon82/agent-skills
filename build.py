@@ -264,10 +264,52 @@ def bump(
             held.append(name)
     UPSTREAMS.write_text(tomlkit.dumps(doc))
     if held:
-        console.print(f"[red]held back {', '.join(held)}: patches don't apply at the new commit. Rebase them by hand "
-                      f"(git apply --3way in a checkout of the new commit), then `bump <name> --rev <sha>`.[/]")
+        console.print(f"[red]held back {', '.join(held)}: patches don't apply at the new commit. Rebuild them from their "
+                      f"Why: set the new rev in upstreams.toml, run `build.py workspace <upstream> <dir>`, fix, "
+                      f"then `build.py diff <upstream> --from <dir>`.[/]")
         raise typer.Exit(1)
     console.print("[green]pins updated; run build[/]")
+
+
+@app.command()
+def workspace(
+    upstream: str,
+    into: Annotated[Path, typer.Argument(help="New directory to create")],
+) -> None:
+    """Start rebuilding broken patches: lay out UPSTREAM at its pin in INTO (a git repo whose first commit
+    is plain upstream), apply its patches, 3-way where they conflict, and list what needs rewriting."""
+    ups = load()
+    if upstream not in ups:
+        console.print(f"[red]unknown upstream '{upstream}'; have: {', '.join(ups)}[/]")
+        raise typer.Exit(1)
+    into = into.expanduser()
+    if into.exists():
+        console.print(f"[red]{into} exists; pick a new directory[/]")
+        raise typer.Exit(1)
+    u = ups[upstream]
+    copy_upstream(u, into)
+    g = lambda *a: git("-c", "user.name=build", "-c", "user.email=build@localhost", "-c", "commit.gpgsign=false", *a, cwd=into)
+    g("init", "-q")
+    (into / ".git" / "objects" / "info" / "alternates").write_text(str(u.cache.resolve() / ".git" / "objects") + "\n")
+    g("add", "-A")
+    g("commit", "-q", "-m", f"{u.repo} @ {u.rev[:7]} (upstream)")
+    t = Table("patch", "result", box=None)
+    for patch in sorted((PATCHES / upstream).glob("*.patch")):
+        try:
+            g("apply", "--whitespace=nowarn", str(patch))
+            t.add_row(patch.name, "[green]applies[/]")
+        except GitError:
+            try:
+                g("apply", "--3way", "--whitespace=nowarn", str(patch))
+                t.add_row(patch.name, "[green]merged (3-way); check it still matches the Why[/]")
+            except GitError as e:
+                marked = [l[2:] for l in str(e).splitlines() if l.startswith("U ")]
+                t.add_row(patch.name, f"[red]rewrite from its Why[/]{': conflicts marked in ' + ', '.join(marked) if marked else ''}")
+    console.print(t)
+    console.print(f"Next: edit {into} until each patch's Why holds again, then\n"
+                  f"  uv run build.py diff {upstream} --from {into}   # rewrites patches/{upstream}/, keeps each header\n"
+                  f"  uv run build.py build && uv run tests/run.py\n"
+                  f"Update a Why when its reasoning changed; `git -C {into} diff HEAD` shows your edits against upstream.")
 
 
 @app.command()

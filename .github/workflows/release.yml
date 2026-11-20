@@ -1,6 +1,6 @@
-# Weekly: move every upstream pin to its HEAD (a pin whose patches no longer apply stays put),
-# rebuild, and if the built skills differ from the last release: commit them to the `release`
-# branch, tag it with the date, and publish a GitHub release with a changelog and archives.
+# Weekly: move every upstream pin to its HEAD, rebuild, and if the built skills differ from the last
+# release: commit them to the `release` branch, tag it with the date, and publish a GitHub release
+# with a changelog and archives. If any upstream's patches no longer apply, nothing is released.
 name: release
 
 on:
@@ -25,10 +25,14 @@ jobs:
         with:
           cache-dependency-glob: "**/*.py"  # scripts declare their deps inline (PEP 723); no lockfile
 
+      # A moved upstream whose patches no longer apply stops the job here: no build, no release.
+      # Rebuild those patches from their Why headers (README: Working with patches), then rerun.
       - name: Bump upstream pins
-        id: bump
-        continue-on-error: true
-        run: uv run build.py bump
+        run: |
+          if ! uv run build.py bump; then
+            echo "::error::An upstream moved and its patches no longer apply. Nothing was released. Rebuild the failing patches from their Why headers, then rerun."
+            exit 1
+          fi
 
       - name: Build
         run: uv run build.py build
@@ -41,9 +45,3 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           uv run ci/release.py
-
-      - name: Fail if an upstream was held back
-        if: steps.bump.outcome == 'failure'
-        run: |
-          echo "::error::An upstream moved and its patches no longer apply. See the 'Bump upstream pins' step."
-          exit 1

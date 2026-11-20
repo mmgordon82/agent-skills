@@ -5,7 +5,7 @@
 
 My skill set for coding agents. Three things set it apart:
 
-- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, ready for **<!-- agents:count -->75<!-- /agents:count --> coding agents** ([which ones](#where-each-agent-looks)): Claude Code, Codex, Kimi, Grok, Pi, Cursor, Gemini CLI, OpenCode and more. Every agent works from the same directories, the same structure and the same rules.
+- **Cross-agent.** One copy of every skill on disk and one global `AGENTS.md`, read by **<!-- agents:list -->Claude Code, Codex, Grok, Kimi Code and Pi<!-- /agents:list -->**, and installable into any other agent npx skills supports ([details](#where-each-agent-looks)). Every agent works from the same directories, the same structure and the same rules.
 - **Token-lean.** Every model-invocable skill puts its description into every session before you type a word. Building this set, I cut 174 skills: about 11k tokens of skill listings that loaded at every session start. Long skills I call by name are now typed-only, and the shared `AGENTS.md` went from 10–11.5k characters per CLI to under 8k. [`skill-critique`](skills/skill-critique/SKILL.md) measures this for your own setup and reviews every skill on the machine.
 - **Opinionated.** It is built for me and tailored to how I work. Take what fits. Every change to someone else's skill is a small patch with a `Why:` line, so you can see each opinion and drop the ones you don't share.
 
@@ -98,6 +98,7 @@ All commands:
 | `verify [--against DIR]` | Builds to a temp dir and diffs every skill against an installed copy (default `~/.agents/skills`). Shows exactly which files differ; missing or changed skills exit 1. |
 | `diff <upstream> [--from DIR]` | Rewrites that upstream's patches from edited skills (default `dist/`). Keeps each patch's `Why:` header. |
 | `bump [UPSTREAM…] [--rev SHA]` | Moves pins to upstream `HEAD` (default: all). A pin moves only if all its patches still apply; otherwise it stays, and the command exits 1. |
+| `workspace <upstream> <dir>` | Starts rebuilding broken patches: lays out the upstream at its pin as a git repo, applies its patches (3-way where they conflict) and lists which to rewrite from their Why. |
 | `install [--target] [--force]` | Points every `~/.agents/skills/<skill>` at `dist/<skill>` (live development; agents link there via npx skills). Creates the settings file if missing. |
 
 ## The skills
@@ -117,9 +118,9 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `delegate` | own | Multi-agent work without ceremony. Root plans and integrates; bounded explorer, worker, tester, researcher and reviewer subagents do the rest. |
 | `/swarm` | pstack + patch | Fan out N parallel workers, drain them, return one report. |
 | `/arena` | pstack + patch | N candidates on the same task; pick a base, graft the best parts of the losers into it. |
-| `/architect` | pstack + patch | Sketch types, signatures and module structure before code, then steer implementation. |
-| `/reflect` | pstack + patch | Three reviewers read the session transcript and turn learnings into edits on existing skills. |
-| `setup-pstack` | pstack + patch | Map pstack roles to *your* models (top / strong / fast / panel tiers). |
+| `/architect` | pstack | Sketch types, signatures and module structure before code, then steer implementation. |
+| `/reflect` | pstack | Reads the session transcript for lasting lessons and turns each into an edit on an existing skill. |
+| `setup-pstack` | pstack + patch | Map pstack roles to *your* models through tiers (strong / fast / panel). |
 | `adversarial-review` | own | Runs a different agent CLI (Claude, Codex, Grok, Kimi, Pi or any other) headless and read-only to attack your work: bugs, holes, unproven claims, cases you didn't expect. You verify each finding before acting. |
 
 ### Agent setup
@@ -162,18 +163,21 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 
 ## What I patched, and why
 
-Each line is the `Why:` header of the patch file it links to.
+Each line is the first line of the patch's `Why:` header. Below it, every header explains the problem, what the patch changes, what to keep when rebasing, and how to rebuild it on a new upstream version, so a broken patch can be rewritten from intent ([how](#when-an-upstream-breaks-patches)).
 
 | Patch | Why |
 |---|---|
-| [pstack/architect](patches/pstack/architect.patch), [arena](patches/pstack/arena.patch), [poteto-mode](patches/pstack/poteto-mode.patch), [reflect](patches/pstack/reflect.patch), [swarm](patches/pstack/swarm.patch), [setup-pstack](patches/pstack/setup-pstack.patch) | Replace Cursor model slugs with generic tiers (top / strong / fast / panel) so the pack runs in any CLI. |
-| [pstack/no-comments](patches/pstack/no-comments.patch) | Comments are one line, two at most. |
-| [pstack/technical-writing](patches/pstack/technical-writing.patch) | Let the model invoke it. Add strict mode, define terms, never drop caveats, and grounding and table rules, merged from Simplified Technical English and plain-writing skills. |
-| [pstack/unslop](patches/pstack/unslop.patch) | Let the model invoke it, put trigger words first in the description, and add rules 34–41, a "How to apply" section and a Simplified Technical English lint script, merged from three anti-slop skills. |
-| [taste-skill/design-taste-frontend](patches/taste-skill/design-taste-frontend.patch) | Typed-only in Claude **and** Codex, with a short description. |
-| [pfd/pfd](patches/pfd/pfd.patch) | Typed-only `/pfd`; flattened layout; version history cut. |
-| [mattpocock/writing-for-agents](patches/mattpocock/writing-for-agents.patch) | Shorter description with trigger words first. |
-| [mattpocock/git-guardrails-claude-code](patches/mattpocock/git-guardrails-claude-code.patch) | Add `block-weakened-checks.sh`: the agent fixes the code instead of skipping hooks or loosening linters. |
+| [mattpocock/git-guardrails-claude-code](patches/mattpocock/git-guardrails-claude-code.patch) | Add block-weakened-checks.sh: block --no-verify and edits to lint, format and pre-commit configs. |
+| [mattpocock/writing-for-agents](patches/mattpocock/writing-for-agents.patch) | A trigger-first description. |
+| [pfd/pfd](patches/pfd/pfd.patch) | Typed-only /pfd, paths fixed for the flattened layout, version history cut, Codex typed-only. |
+| [pstack/arena](patches/pstack/arena.patch) | Use the panel tier for runners and the judge pool, and model-agnostic fallbacks, instead of Cursor model ids. |
+| [pstack/no-comments](patches/pstack/no-comments.patch) | Comments that survive are one line, two at most. |
+| [pstack/poteto-mode](patches/pstack/poteto-mode.patch) | Define the model tiers (strong, fast, panel) in the Subagents section; playbooks use them instead of Cursor model ids. |
+| [pstack/setup-pstack](patches/pstack/setup-pstack.patch) | Configure tiers (strong, fast, panel) mapped to the models a harness has, instead of writing Cursor model ids. |
+| [pstack/swarm](patches/pstack/swarm.patch) | Use the fast tier for workers, and a model-agnostic fallback, instead of a Cursor model id. |
+| [pstack/technical-writing](patches/pstack/technical-writing.patch) | Let the model invoke it, with a trigger-first description, and add four rules from the deleted STE and plain-writing skills. |
+| [pstack/unslop](patches/pstack/unslop.patch) | Let the model invoke it, with a trigger-first description; add rules 34-41 and "How to apply" from three deleted anti-slop skills, plus an STE lint script. |
+| [taste-skill/design-taste-frontend](patches/taste-skill/design-taste-frontend.patch) | Typed-only /design-taste-frontend with a one-line description, in Claude and in Codex. |
 
 Two upstreams became forks because their diffs would have been the whole skill:
 
@@ -269,13 +273,12 @@ No file or no key → use the defaults below. A broken value → use the default
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) runs every Monday and on manual dispatch (**Actions → release → Run workflow**):
 
-1. `build.py bump` moves every pin to its upstream `HEAD`. An upstream whose patches no longer apply keeps its old pin.
+1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released until the patches are rebuilt ([how](#when-an-upstream-breaks-patches)).
 2. `build.py build` writes `dist/`.
 3. [`ci/release.py`](ci/release.py) compares `dist/` with the last published release, as git trees (file contents and modes). If nothing changed (for example, an upstream commit only touched its CI config), it stops. No release.
 4. Otherwise it commits the moved pins to `main`, then commits `dist/` as one new commit on the **`release` branch**: the skill folders at the root, nothing else, with a `Source: <main sha>` trailer. So `git diff 20261119 20261126` (or GitHub's compare view) shows exactly what changed for users between two releases, and `npx skills add …#release` installs it.
 5. It tags that commit with the date (`20261119`; a second release that day is `20261119.2`) and publishes a GitHub release with `agent-skills-<version>.tar.gz` and `.zip`. Each archive holds the skill folders, ready to extract into a skills directory.
 6. The release notes are a bullet-point changelog that OpenAI `gpt-6.1-terra` writes from the diff between the two release commits, the upstream commit logs and this repo's commits. If generation fails, the release still publishes with fallback notes, then the job exits 1 to alert you. The prompt and model are in `ci/release.py`.
-7. If an upstream was held back, the job fails after releasing, so you get notified and can rebase that patch.
 
 Setup: add an `OPENAI_API_KEY` repository secret. To preview a release locally: `OPENAI_API_KEY=… uv run ci/release.py --dry-run`. A run that pushed the branch but failed to publish finishes the same release on the next run.
 
@@ -325,99 +328,24 @@ Kimi Code reads `~/.agents/AGENTS.md` directly. Machine-specific commands (VM CL
 
 ## Where each agent looks
 
-Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skill-critique/agents.toml): a label, a home dir, the dir it reads skills from, and optional detection checks. Five are verified here (Claude Code, Codex, Kimi Code, Grok, Pi); the rest come from the agent table of [npx skills](https://github.com/vercel-labs/skills), with the same ids. `/skill-critique` uses it to find which agents are installed (even ones with no skills) and measure what each loads; this table and the graphics are generated from it. Installing is npx skills' job; the registry only describes agents. Add your own without touching the repo: see [Customize](#customize). Refresh the npx part with `uv run tools/npx_agents.py <unpacked skills package>`.
+Agents come from one registry, [`skills/skill-critique/agents.toml`](skills/skill-critique/agents.toml): a label, a home dir, the dir it reads skills from, and optional detection checks. The agents below are `verified`: their layout and quirks were checked by hand, and `/skill-critique` measures them exactly. The registry also carries the agent table of [npx skills](https://github.com/vercel-labs/skills), with the same ids, so the scan can detect any of those agents (even ones with no skills) and measure them with generic rules. Installing is npx skills' job; the registry only describes agents. Add your own without touching the repo: see [Customize](#customize). Refresh the npx part with `uv run tools/npx_agents.py <unpacked skills package>`.
 
 <!-- agents:table -->
-<details>
-<summary>All 75 agents</summary>
-
 | Agent | Id | Detected when | Reads skills from |
 |---|---|---|---|
 | Claude Code | `claude-code` | `~/.claude` exists | `~/.claude/skills` |
 | Codex | `codex` | `~/.codex` exists | `~/.agents/skills` |
-| Kimi Code | `kimi-code-cli` | `~/.kimi-code` exists, and `kimi` on PATH | `~/.agents/skills` |
 | Grok | `grok` | `~/.grok` exists, and `grok` on PATH | `~/.grok/skills` |
+| Kimi Code | `kimi-code-cli` | `~/.kimi-code` exists, and `kimi` on PATH | `~/.agents/skills` |
 | Pi | `pi` | `~/.pi/agent` exists, and `pi` on PATH | `~/.agents/skills` |
-| AdaL | `adal` | `~/.adal` exists | `~/.adal/skills` |
-| AiderDesk | `aider-desk` | `~/.aider-desk` exists | `~/.aider-desk/skills` |
-| Amp | `amp` | `~/.config/amp` exists | `~/.config/agents/skills` |
-| Antigravity | `antigravity` | `~/.gemini/antigravity` exists | `~/.gemini/config/skills` |
-| Antigravity CLI | `antigravity-cli` | `~/.gemini/antigravity-cli` exists | `~/.gemini/config/skills` |
-| AstrBot | `astrbot` | `~/.astrbot` exists | `~/.astrbot/data/skills` |
-| Augment | `augment` | `~/.augment` exists | `~/.augment/skills` |
-| Autohand Code CLI | `autohand-code` | `~/.autohand` exists | `~/.autohand/skills` |
-| IBM Bob | `bob` | `~/.bob` exists | `~/.bob/skills` |
-| Cline | `cline` | `~/.cline` exists | `~/.agents/skills` |
-| CodeArts Agent | `codearts-agent` | `~/.codeartsdoer` exists | `~/.codeartsdoer/skills` |
-| CodeBuddy | `codebuddy` | `~/.codebuddy` exists | `~/.codebuddy/skills` |
-| Codemaker | `codemaker` | `~/.codemaker` exists | `~/.codemaker/skills` |
-| Code Studio | `codestudio` | `~/.codestudio` exists | `~/.codestudio/skills` |
-| Command Code | `command-code` | `~/.commandcode` exists | `~/.commandcode/skills` |
-| Continue | `continue` | `~/.continue` exists | `~/.continue/skills` |
-| Cortex Code | `cortex` | `~/.snowflake/cortex` exists | `~/.snowflake/cortex/skills` |
-| Crush | `crush` | `~/.config/crush` exists | `~/.config/crush/skills` |
-| Cursor | `cursor` | `~/.cursor` exists | `~/.cursor/skills` |
-| Deep Agents | `deepagents` | `~/.deepagents` exists | `~/.deepagents/agent/skills` |
-| Devin for Terminal | `devin` | `~/.config/devin` exists | `~/.config/devin/skills` |
-| Dexto | `dexto` | `~/.dexto` exists | `~/.agents/skills` |
-| Droid | `droid` | `~/.factory` exists | `~/.factory/skills` |
-| Firebender | `firebender` | `~/.firebender` exists | `~/.firebender/skills` |
-| ForgeCode | `forgecode` | `~/.forge` exists | `~/.forge/skills` |
-| fx | `fx` | `~/.fx` exists | `~/.agents/skills` |
-| Gemini CLI | `gemini-cli` | `~/.gemini` exists | `~/.gemini/skills` |
-| GitHub Copilot | `github-copilot` | `~/.copilot` exists | `~/.copilot/skills` |
-| Goose | `goose` | `~/.config/goose` exists | `~/.config/goose/skills` |
-| Hermes Agent | `hermes-agent` | `~/.hermes` exists | `~/.hermes/skills` |
-| iFlow CLI | `iflow-cli` | `~/.iflow` exists | `~/.iflow/skills` |
-| inference.sh | `inference-sh` | `~/.inferencesh` exists | `~/.inferencesh/skills` |
-| Jazz | `jazz` | `~/.jazz` exists | `~/.jazz/skills` |
-| Junie | `junie` | `~/.junie` exists | `~/.junie/skills` |
-| Kilo Code | `kilo` | `~/.kilo` or `~/.kilocode` exists | `~/.kilo/skills` |
-| Kimchi | `kimchi` | `~/.config/kimchi` exists | `~/.config/kimchi/harness/skills` |
-| Kiro CLI | `kiro-cli` | `~/.kiro` exists | `~/.kiro/skills` |
-| Kode | `kode` | `~/.kode` exists | `~/.kode/skills` |
-| Lingma | `lingma` | `~/.lingma` exists | `~/.lingma/skills` |
-| Loaf | `loaf` | `~/.loaf` exists | `~/.agents/skills` |
-| MCPJam | `mcpjam` | `~/.mcpjam` exists | `~/.mcpjam/skills` |
-| MiniMax Code | `minimax-code` | `~/.minimax` or `/Applications/MiniMax Code.app` exists | `~/.minimax/skills` |
-| Mistral Vibe | `mistral-vibe` | `~/.vibe` exists | `~/.vibe/skills` |
-| Moxby | `moxby` | `~/.moxby` exists | `~/.moxby/skills` |
-| Mux | `mux` | `~/.mux` exists | `~/.mux/skills` |
-| Neovate | `neovate` | `~/.neovate` exists | `~/.neovate/skills` |
-| Ona | `ona` | `~/.ona` exists | `~/.ona/skills` |
-| OpenClaw | `openclaw` | `~/.openclaw` or `~/.clawdbot` or `~/.moltbot` exists | `~/.openclaw/skills` |
-| OpenCode | `opencode` | `~/.config/opencode` exists | `~/.config/opencode/skills` |
-| OpenHands | `openhands` | `~/.openhands` exists | `~/.openhands/skills` |
-| Pochi | `pochi` | `~/.pochi` exists | `~/.pochi/skills` |
-| Posit Assistant | `posit-assistant` | `~/.posit/assistant` or `~/.positai` exists | `~/.posit/assistant/skills` |
-| Qoder | `qoder` | `~/.qoder` exists | `~/.qoder/skills` |
-| Qoder CN | `qoder-cn` | `~/.qoder-cn` exists | `~/.qoder-cn/skills` |
-| Qwen Code | `qwen-code` | `~/.qwen` exists | `~/.qwen/skills` |
-| Reasonix | `reasonix` | `~/.reasonix` exists | `~/.reasonix/skills` |
-| Roo Code | `roo` | `~/.roo` exists | `~/.roo/skills` |
-| Rovo Dev | `rovodev` | `~/.rovodev` exists | `~/.rovodev/skills` |
-| Sarvam Code | `sarvam-code` | `~/.sarvam` exists | `~/.agents/skills` |
-| Tabnine CLI | `tabnine-cli` | `~/.tabnine` exists | `~/.tabnine/agent/skills` |
-| Terramind | `terramind` | `~/.terramind` exists | `~/.terramind/skills` |
-| Tinycloud | `tinycloud` | `~/.tinycloud` exists | `~/.tinycloud/skills` |
-| Trae | `trae` | `~/.trae` exists | `~/.trae/skills` |
-| Trae CN | `trae-cn` | `~/.trae-cn` exists | `~/.trae-cn/skills` |
-| Warp | `warp` | `~/.warp` exists | `~/.agents/skills` |
-| Windsurf | `windsurf` | `~/.codeium/windsurf` exists | `~/.codeium/windsurf/skills` |
-| ZCode | `zcode` | `~/.zcode` or `/Applications/ZCode.app` exists | `~/.zcode/skills` |
-| Zed | `zed` | `~/.config/zed` exists | `~/.agents/skills` |
-| Zencoder | `zencoder` | `~/.zencoder` exists | `~/.zencoder/skills` |
-| Zenflow | `zenflow` | `~/.zencoder` exists | `~/.zencoder/skills` |
-
-</details>
 <!-- /agents:table -->
 
 Known differences between them (handled in `/skill-critique`'s scan):
 
 - **Claude Code:** typed-only via `disable-model-invocation: true`, or `skillOverrides` in `settings.json`. Tolerates invalid YAML frontmatter. Global instructions: `~/.claude/CLAUDE.md`.
 - **Codex:** also reads `~/.codex/skills` and plugins. Shows about 80 characters of a description. Typed-only needs `agents/openai.yaml` with `policy: allow_implicit_invocation: false`. Skips skills with invalid YAML frontmatter.
-- **Kimi Code:** also reads `~/.kimi-code/skills` and `extra_skill_dirs` in its `config.toml`. Global instructions: `~/.agents/AGENTS.md`.
 - **Grok:** also reads `~/.claude/skills` and `[skills] paths` (Grok 1.0.77); `[paths] extra_skill_dirs` does not add skills. Global instructions are capped at 10k characters.
+- **Kimi Code:** also reads `~/.kimi-code/skills` and `extra_skill_dirs` in its `config.toml`. Global instructions: `~/.agents/AGENTS.md`.
 - **Pi:** global instructions in `~/.pi/agent/AGENTS.md`; set `PI_CODING_AGENT_DIR` to move it.
 
 ## Working with patches
@@ -435,16 +363,26 @@ To capture edits you made in your installed skills, run `diff pstack --from ~/.a
 
 **Patch a new upstream skill:** add it to that upstream's `paths` in `upstreams.toml`, build, edit `dist/<skill>`, then run `diff`. Add a `Why:` line at the top of the new patch.
 
-**Update an upstream by hand:**
+### When an upstream breaks patches
+
+An upstream release can rewrite the lines a patch touches. pstack 0.15.43 did: it rewrote the same paragraphs, renamed the model ids our patches replace, and deleted two skills' model choices outright. The weekly job then fails at the bump step and releases nothing. Rebuild the patches from their intent, not by forcing the old diff on:
 
 ```sh
-uv run build.py bump pstack              # tries upstream HEAD
-# pstack: 059190e → 0d2dc00, 2 commits touch our paths
-# pstack  arena.patch   error: patch failed: arena/SKILL.md:14
-# held back pstack: patches don't apply at the new commit.
+uv run build.py bump pstack                       # shows the new commit and which patches fail
+# set pstack's rev in upstreams.toml to the new commit, then:
+uv run build.py workspace pstack ~/tmp/pstack-ws  # new upstream as a git repo, patches applied where they can be
 ```
 
-A held-back pin stays where it was. To rebase, check out the new commit, apply the patch with `git apply --3way`, fix the conflicts, regenerate the patch, then run `bump pstack --rev <sha>`.
+`workspace` prints one line per patch: applies, merged (check it), or rewrite from its Why, with conflicts marked. For each patch to rewrite, read its header and redo the change on the new upstream text: keep what upstream added, restate it in the patch's terms, and drop parts upstream made unnecessary. `git -C ~/tmp/pstack-ws diff HEAD` shows your edits against plain upstream. Then:
+
+```sh
+uv run build.py diff pstack --from ~/tmp/pstack-ws   # rewrites the patches, keeps each header
+uv run build.py build && uv run tests/run.py
+```
+
+`diff` deletes a patch that has nothing left to change. Update a header when its reasoning changed, so the next rebuild starts from the right intent.
+
+`build` always starts from a clean copy of each upstream's folders at the pin, then applies the patches. Files upstream adds or deletes come and go with it; nothing from an older `dist/` survives.
 
 **Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte. Missing or changed skills exit 1.
 
@@ -452,7 +390,7 @@ A held-back pin stays where it was. To rebase, check out the new commit, apply t
 
 ## Writing skills that load reliably
 
-Lessons from running one skill set across the five verified agents:
+Lessons from running one skill set across the verified agents:
 
 - **Trigger words first.** Codex shows about 80 characters of a description. Start with "Use when …" and the words a user would actually say.
 - **Quote descriptions that contain `: `.** `description: Use for X: Y` is invalid YAML. Claude Code tolerates it; strict parsers drop the skill without a word.
@@ -470,7 +408,7 @@ upstreams.toml         pins: repo, sha, license, paths
 patches/<upstream>/    one .patch per skill, each with a Why: header
 skills/                own skills, plus forks that carry their own LICENSE
 skills/skill-critique/agents.toml   the agent registry
-build.py               build · verify · diff · bump · install (uv script)
+build.py               build · verify · diff · bump · workspace · install (uv script)
 tools/npx_agents.py    refresh the npx part of the agent registry
 ci/release.py          compare with the last release, release branch commit, changelog, archives
 tests/                 behavioral tests: uv run tests/run.py

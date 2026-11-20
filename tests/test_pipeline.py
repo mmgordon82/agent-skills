@@ -42,6 +42,36 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(marker.read_text(), "keep me")
             self.assertFalse(staged.exists())
 
+    def test_build_follows_upstream_file_adds_and_deletes(self) -> None:
+        with self.temporary_directory() as tmp:
+            root = Path(tmp)
+            cache, own, patches, dist = root / "cache", root / "own", root / "patches", root / "dist"
+            repo = cache / "acme__skills"
+            for d in (repo / "skills" / "demo", own, patches, dist / "demo"):
+                d.mkdir(parents=True)
+            git = lambda *a: build.subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True, text=True).stdout.strip()
+            git("init", "-q")
+            (repo / "skills" / "demo" / "SKILL.md").write_text("demo")
+            (repo / "skills" / "demo" / "old.md").write_text("old")
+            git("add", "-A")
+            git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "a")
+            (repo / "skills" / "demo" / "old.md").unlink()
+            (repo / "skills" / "demo" / "new.md").write_text("new")
+            git("add", "-A")
+            git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "b")
+            (dist / "demo" / "old.md").write_text("stale copy from the previous build")
+            upstream = build.Upstream(repo="acme/skills", rev=git("rev-parse", "HEAD"), license="MIT",
+                                      paths={"demo": "skills/demo"})
+            with (
+                patch.object(build, "CACHE", cache), patch.object(build, "OWN", own),
+                patch.object(build, "PATCHES", patches), patch.object(build, "DIST", dist),
+                patch.object(build, "load", return_value={"acme": upstream}),
+            ):
+                result = self.runner.invoke(build.app, ["build"])
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertTrue((dist / "demo" / "new.md").exists())
+            self.assertFalse((dist / "demo" / "old.md").exists())
+
     def test_verify_accepts_an_identical_install(self) -> None:
         with self.temporary_directory() as tmp:
             root = Path(tmp)

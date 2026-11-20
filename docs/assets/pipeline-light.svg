@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="t">
-<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install for 75 agents</title>
+<title id="t">Build pipeline: pin upstreams, apply patches, build dist, install with npx skills into any agent</title>
 <style>
   .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
   .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
@@ -24,7 +24,7 @@
 <rect x="40" y="84" width="3" height="38" rx="1.5" fill="#9a6700"/>
 <text x="58" y="98" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >backnotprop</text>
 <text x="58" y="119" class="sans" font-size="15" font-weight="600" fill="#1f2328" text-anchor="start" >pstack</text>
-<text x="276" y="98" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="end" >@059190e · MIT</text>
+<text x="276" y="98" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="end" >@0d2dc00 · MIT</text>
 <rect x="40" y="146" width="250" height="62" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
 <rect x="40" y="158" width="3" height="38" rx="1.5" fill="#9a6700"/>
 <text x="58" y="172" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >Leonxlnx</text>
@@ -46,17 +46,13 @@
 <rect x="330" y="72" width="250" height="284" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
 <text x="348" y="102" class="mono" font-size="15" font-weight="600" fill="#9a6700" text-anchor="start" >patches/</text>
 <text x="360" y="134" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >pstack/</text>
-<text x="562" y="134" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="end" >9 patches</text>
 <text x="360" y="162" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >taste-skill/</text>
-<text x="562" y="162" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="end" >1 patch</text>
 <text x="360" y="190" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >pfd/</text>
-<text x="562" y="190" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="end" >1 patch</text>
 <text x="360" y="218" class="mono" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start" >mattpocock/</text>
-<text x="562" y="218" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="end" >2 patches</text>
 <line x1="348" y1="240" x2="562" y2="240" stroke="#d1d9e0"/>
 <text x="348" y="262" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >one .patch per skill,</text>
 <text x="348" y="280" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >each opens with a Why: line</text>
-<text x="348" y="306" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >Why: generic model tiers</text>
+<text x="348" y="306" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >Why: model tiers, not vendor ids</text>
 <text x="348" y="324" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >Why: typed-only /pfd</text>
 <text x="348" y="342" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >Why: trigger words first</text>
 <rect x="330" y="376" width="250" height="62" rx="10" fill="#f6f8fa" stroke="#1a7f37"/>
@@ -85,7 +81,7 @@
 <text x="928" y="119" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >26 skills, or a weekly release</text>
 <rect x="910" y="192" width="250" height="74" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
 <text x="928" y="220" class="mono" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start" >npx skills add</text>
-<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >…#release · 75 agents</text>
+<text x="928" y="242" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >…#release · any agent</text>
 <rect x="910" y="312" width="250" height="74" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
 <text x="928" y="340" class="mono" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start" >build.py install</text>
 <text x="928" y="362" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >maintainer: live links to dist/</text>

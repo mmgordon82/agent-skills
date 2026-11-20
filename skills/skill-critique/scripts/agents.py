@@ -14,7 +14,7 @@ from pathlib import Path
 DEFAULTS = Path(__file__).resolve().parent.parent / "agents.toml"
 SETTINGS = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "agent-skills" / "settings.toml"
 SHARED_SKILLS = Path.home() / ".agents" / "skills"
-FIELDS = {"label", "home", "skills", "check_binary", "check_dir", "check_boolean_operator"}
+FIELDS = {"label", "home", "skills", "check_binary", "check_dir", "check_boolean_operator", "verified"}
 
 
 @dataclass
@@ -26,6 +26,7 @@ class Agent:
     check_binary: list[str] = field(default_factory=list)
     check_dir: list[Path] = field(default_factory=list)
     operator: str = "AND"  # check_boolean_operator
+    verified: bool = False  # layout and quirks checked by hand; the docs name these
 
     def installed(self) -> bool:
         """AND: home and every check_dir exist and every check_binary is on PATH. OR: any one of them."""
@@ -72,5 +73,6 @@ def load_agents(defaults: Path = DEFAULTS, settings: Path = SETTINGS, user: bool
             warn(f"agent {aid}: check_boolean_operator must be AND or OR, not {operator!r}; using AND")
             operator = "AND"
         out.append(Agent(aid, t["label"], Path(t["home"]).expanduser(), Path(t["skills"]).expanduser(),
-                         list(t.get("check_binary", [])), [Path(d).expanduser() for d in t.get("check_dir", [])], operator))
+                         list(t.get("check_binary", [])), [Path(d).expanduser() for d in t.get("check_dir", [])], operator,
+                         t.get("verified") is True))
     return out

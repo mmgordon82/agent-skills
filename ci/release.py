@@ -34,8 +34,7 @@ FILE_DIFF_LINES = 120
 sys.path.insert(0, str(ROOT / "skills" / "skill-critique" / "scripts"))
 from agents import load_agents  # noqa: E402
 
-_LABELS = [a.label for a in load_agents(user=False)]
-AGENT_LABELS = ", ".join(_LABELS[:5]) + (f" and {len(_LABELS) - 5} more" if len(_LABELS) > 5 else "")
+AGENT_LABELS = ", ".join(a.label for a in load_agents(user=False) if a.verified)
 
 SYSTEM = f"""You write release notes for agent-skills: a set of agent skills (folders with a SKILL.md)
 shared by coding agents such as {AGENT_LABELS}. Some skills are the author's own; others are

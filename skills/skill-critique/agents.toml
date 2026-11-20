@@ -7,6 +7,8 @@
 #   check_binary  optional: programs that must be on PATH
 #   check_dir     optional: more directories that must exist (other install locations, app bundles)
 #   check_boolean_operator  optional: "AND" (default) or "OR"
+#   verified      optional: true for agents whose layout and quirks were checked by hand;
+#                 the docs name these, and the scan gives them exact handling
 #
 # AND: installed when `home` and every check_dir exist and every check_binary is on PATH.
 # OR:  installed when any one of them is true.
@@ -19,28 +21,33 @@
 label = "Claude Code"
 home = "~/.claude"
 skills = "~/.claude/skills"
+verified = true
 
 [agents.codex]
 label = "Codex"
 home = "~/.codex"
 skills = "~/.agents/skills"
-
-[agents.kimi-code-cli]
-label = "Kimi Code"
-home = "~/.kimi-code"
-skills = "~/.agents/skills"
-check_binary = ["kimi"]
+verified = true
 
 [agents.grok]
 label = "Grok"
 home = "~/.grok"
 skills = "~/.grok/skills"
+verified = true
 check_binary = ["grok"]
+
+[agents.kimi-code-cli]
+label = "Kimi Code"
+home = "~/.kimi-code"
+skills = "~/.agents/skills"
+verified = true
+check_binary = ["kimi"]
 
 [agents.pi]
 label = "Pi"
 home = "~/.pi/agent"
 skills = "~/.agents/skills"
+verified = true
 check_binary = ["pi"]
 
 # ---- From npx skills 1.9.0's agent table: detection translated from its source (project-only
