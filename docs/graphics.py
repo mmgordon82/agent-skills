@@ -198,7 +198,7 @@ def hero(c: dict) -> str:
                       extra='font-style="italic"' if kind == "note" else ""))
         y += 28
     b.append(f'<line x1="{X}" y1="{y + 8}" x2="{X + W}" y2="{y + 8}" stroke="{c["line"]}"/>')
-    b.append(text(X + 20, y + 34, "pinned  Leonxlnx/taste-skill @ f6b7657", c, 12, "mono", c["muted"]))
+    b.append(text(X + 20, y + 34, "pinned  Leonxlnx/taste-skill", c, 12, "mono", c["muted"]))
     b.append(text(X + W - 20, y + 34, f"−{saved} tokens / session", c, 12, "mono", c["add"], 600, anchor="end"))
     return svg(1200, 440, f"agent-skills: one opinionated, token-lean skill set shared by {joined(LABELS)}",
                "\n".join(b), c)
@@ -301,7 +301,7 @@ def pipeline(c: dict, n_skills: int, n_own: int) -> str:
         b.append(text(cols[0] + 18, y + 26, owner, c, 12, "mono", c["muted"]))
         b.append(text(cols[0] + 18, y + 47, repo, c, 15, weight=600))
         lic = u["license"].replace("CC-BY-SA-4.0", "CC BY-SA")
-        b.append(text(cols[0] + W - 14, y + 26, f"@{u['rev'][:7]} · {lic}", c, 12, "mono", c["patched"], anchor="end"))
+        b.append(text(cols[0] + W - 14, y + 26, lic, c, 12, "mono", c["patched"], anchor="end"))  # no commit ids: they move weekly
         y += 74
     b.append(card(cols[0], y + 8, W, 62, c, stroke=c["own"]))
     b.append(text(cols[0] + 18, y + 34, "skills/", c, 15, "mono", c["own"], 600))

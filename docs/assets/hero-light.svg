@@ -45,6 +45,6 @@
 <rect x="651" y="300" width="498" height="28" fill="#dafbe1"/>
 <text x="670" y="319" class="mono" font-size="13" font-weight="400" fill="#1a7f37" text-anchor="start" >+disable-model-invocation: true</text>
 <line x1="650" y1="336" x2="1150" y2="336" stroke="#d1d9e0"/>
-<text x="670" y="362" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >pinned  Leonxlnx/taste-skill @ f6b7657</text>
+<text x="670" y="362" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >pinned  Leonxlnx/taste-skill</text>
 <text x="1130" y="362" class="mono" font-size="12" font-weight="600" fill="#1a7f37" text-anchor="end" >−232 tokens / session</text>
 </svg>
