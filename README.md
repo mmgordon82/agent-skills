@@ -90,13 +90,13 @@ Most good skills come from someone else's repo, and using them as-is is rarely r
 - A description is too long for Codex, which truncates it, so the skill never triggers.
 - A rarely used skill costs hundreds of tokens in every session.
 
-Copying and editing works once. After that your copy drifts from upstream, and nobody can tell what you changed. This repo keeps each upstream at a pinned commit and records every change as a `.patch` you can read in a minute. A weekly CI job moves the pins, re-applies the patches and publishes a release when the result changes.
+Copying and editing works once. After that your copy drifts from upstream, and nobody can tell what you changed. This repo keeps each upstream at a pinned commit and records every change as a `.patch` you can read in a minute. A weekly CI job moves the pins, re-applies the patches and publishes a release when the result changes. When an upstream change breaks a patch, CI rebuilds it from its `Why:` and opens a pull request to review.
 
 | Approach | Updates from upstream | Your changes visible | Effort |
 |---|---|---|---|
 | Install upstream as-is | yes | no changes possible | none |
 | Copy and edit (detach) | manual, lossy | buried in a copy | grows over time |
-| **Pin + patch (this repo)** | weekly CI, broken patches flagged | one `.patch` per skill with a `Why:` line | none until a patch breaks |
+| **Pin + patch (this repo)** | weekly CI; broken patches rebuilt in a PR | one `.patch` per skill with a `Why:` line | none until a patch breaks |
 
 ## How it works
 
