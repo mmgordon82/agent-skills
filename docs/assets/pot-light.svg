@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="t">
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="506" viewBox="0 0 920 506" role="img" aria-labelledby="t">
 <title id="t">What&#x27;s cooking: pinned upstream skills, forks and my own skills go into one pot and come out as one skill set for Claude Code, Codex, Grok, Kimi Code and Pi</title>
 <style>
   .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
@@ -6,60 +6,58 @@
   .flow { stroke-dasharray: 4 6; animation: flow 1.2s linear infinite; }
   @keyframes flow { to { stroke-dashoffset: -20; } }
   .bob { animation: bob 3.2s ease-in-out infinite; } @keyframes bob { 50% { transform: translateY(6px); } }  .bubble { transform-box: fill-box; transform-origin: center; animation: pop 2.5s ease-in-out infinite; } @keyframes pop { 50% { transform: scale(1.35); } } .flame { transform-box: fill-box; transform-origin: bottom; animation: flick 0.9s ease-in-out infinite alternate; } @keyframes flick { to { transform: scaleY(0.75); } }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transform: none !important; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 </style>
 <defs>
   <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6eaef"/></pattern>
   <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
     <path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker>
 </defs>
-<rect width="1200" height="560" rx="16" fill="#ffffff"/>
-<rect width="1200" height="560" rx="16" fill="url(#dots)"/>
-<rect x="0.5" y="0.5" width="1199" height="559" rx="16" fill="none" stroke="#d1d9e0"/>
-<path class="flow" d="M170,116 C170,217.0 460,217.0 460,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M455,104 C455,211.0 530,211.0 530,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M750,112 C750,215.0 670,215.0 670,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M1035,120 C1035,219.0 750,219.0 750,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M210,248 C210,283.0 430,283.0 430,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M990,250 C990,284.0 770,284.0 770,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<path class="flow" d="M600,240 C600,279.0 600,279.0 600,318" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
-<g transform="translate(170,82) rotate(-5)"><g class="bob" style="animation-delay:0.0s"><rect x="-87.2" y="-32" width="174.4" height="64" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-67.2" cy="0" r="6" fill="#9a6700"/><text x="-51.2" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >backnotprop/</text><text x="-51.2" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >pstack</text><text x="-51.2" y="23" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >9 skills, patched</text></g></g>
-<g transform="translate(455,70) rotate(4)"><g class="bob" style="animation-delay:0.4s"><rect x="-83.6" y="-32" width="167.2" height="64" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-63.599999999999994" cy="0" r="6" fill="#9a6700"/><text x="-47.599999999999994" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >Leonxlnx/</text><text x="-47.599999999999994" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >taste-skill</text><text x="-47.599999999999994" y="23" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >1 skill, patched</text></g></g>
-<g transform="translate(750,78) rotate(-3)"><g class="bob" style="animation-delay:0.8s"><rect x="-124.89999999999999" y="-32" width="249.79999999999998" height="64" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-104.89999999999999" cy="0" r="6" fill="#9a6700"/><text x="-88.89999999999999" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >skovalik/</text><text x="-88.89999999999999" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >perception-first-design</text><text x="-88.89999999999999" y="23" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >1 skill, patched</text></g></g>
-<g transform="translate(1035,86) rotate(6)"><g class="bob" style="animation-delay:1.2000000000000002s"><rect x="-87.2" y="-32" width="174.4" height="64" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-67.2" cy="0" r="6" fill="#9a6700"/><text x="-51.2" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >mattpocock/</text><text x="-51.2" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >skills</text><text x="-51.2" y="23" class="mono" font-size="12" font-weight="400" fill="#9a6700" text-anchor="start" >2 skills, patched</text></g></g>
-<g transform="translate(210,214) rotate(4)"><g class="bob" style="animation-delay:1.6s"><rect x="-69.0" y="-32" width="138.0" height="64" rx="12" fill="#f6f8fa" stroke="#0969da"/><circle cx="-49.0" cy="0" r="6" fill="#0969da"/><text x="-33.0" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >pbakaus/</text><text x="-33.0" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >impeccable</text><text x="-33.0" y="23" class="mono" font-size="12" font-weight="400" fill="#0969da" text-anchor="start" >1 fork</text></g></g>
-<g transform="translate(990,216) rotate(-5)"><g class="bob" style="animation-delay:2.0s"><rect x="-120.6" y="-32" width="241.2" height="64" rx="12" fill="#f6f8fa" stroke="#0969da"/><circle cx="-100.6" cy="0" r="6" fill="#0969da"/><text x="-84.6" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >affaan-m/</text><text x="-84.6" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >everything-claude-code</text><text x="-84.6" y="23" class="mono" font-size="12" font-weight="400" fill="#0969da" text-anchor="start" >4 forks</text></g></g>
-<g transform="translate(600,206) rotate(-2)"><g class="bob" style="animation-delay:2.4000000000000004s"><rect x="-69.0" y="-32" width="138.0" height="64" rx="12" fill="#f6f8fa" stroke="#8250df"/><circle cx="-49.0" cy="0" r="6" fill="#8250df"/><text x="-33.0" y="-12" class="mono" font-size="12" font-weight="400" fill="#59636e" text-anchor="start" >mine/</text><text x="-33.0" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >own skills</text><text x="-33.0" y="23" class="mono" font-size="12" font-weight="400" fill="#8250df" text-anchor="start" >8 skills</text></g></g>
-<path d="M372,330 L384,452 Q388,494 430,494 L770,494 Q812,494 816,452 L828,330 Z" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
-<rect x="338" y="350" width="36" height="22" rx="11" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
-<rect x="826" y="350" width="36" height="22" rx="11" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
-<ellipse cx="600" cy="330" rx="236" ry="32" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
-<ellipse cx="600" cy="333" rx="216" ry="22" fill="#f1e3c2"/>
-<circle class="bubble" style="animation-delay:0.0s" cx="470" cy="333" r="6" fill="none" stroke="#9a6700" stroke-width="1.4"/>
-<circle class="bubble" style="animation-delay:0.5s" cx="540" cy="339" r="4" fill="none" stroke="#9a6700" stroke-width="1.4"/>
-<circle class="bubble" style="animation-delay:1.0s" cx="610" cy="333" r="7" fill="none" stroke="#9a6700" stroke-width="1.4"/>
-<circle class="bubble" style="animation-delay:1.5s" cx="680" cy="339" r="5" fill="none" stroke="#9a6700" stroke-width="1.4"/>
-<circle class="bubble" style="animation-delay:2.0s" cx="735" cy="333" r="4" fill="none" stroke="#9a6700" stroke-width="1.4"/>
-<text x="600" y="418" class="mono" font-size="30" font-weight="700" fill="#1f2328" text-anchor="middle" >agent-skills</text>
-<text x="600" y="446" class="mono" font-size="13" font-weight="400" fill="#59636e" text-anchor="middle" >build.py: pin · patch · build</text>
-<path class="flame" style="animation-delay:0.0s" d="M480,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.15s" d="M520,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.3s" d="M560,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.44999999999999996s" d="M600,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.6s" d="M640,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.75s" d="M680,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<path class="flame" style="animation-delay:0.8999999999999999s" d="M720,532 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
-<line x1="440" y1="536" x2="760" y2="536" stroke="#d1d9e0" stroke-width="3" stroke-linecap="round"/>
-<rect x="40" y="388" width="280" height="112" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
-<text x="60" y="416" class="mono" font-size="12" font-weight="600" fill="#59636e" text-anchor="start" letter-spacing="1.5">RECIPE</text>
-<text x="60" y="442" class="mono" font-size="15" font-weight="700" fill="#9a6700" text-anchor="start" >upstreams.toml</text>
-<text x="60" y="464" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >every upstream pinned to a sha,</text>
-<text x="60" y="482" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >re-checked weekly by CI</text>
-<rect x="880" y="388" width="280" height="112" rx="10" fill="#f6f8fa" stroke="#1a7f37"/>
-<text x="900" y="416" class="mono" font-size="12" font-weight="600" fill="#59636e" text-anchor="start" letter-spacing="1.5">SERVES</text>
-<text x="900" y="442" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >26 skills, one copy</text>
-<text x="900" y="464" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >Claude Code · Codex · Grok</text>
-<text x="900" y="482" class="sans" font-size="13" font-weight="400" fill="#59636e" text-anchor="start" >Kimi Code · Pi and more</text>
-<path class="flow" d="M320,444 C350.0,444 350.0,420 380,420" fill="none" stroke="#59636e" stroke-width="1.6" marker-end="url(#arrow)"/>
-<path class="flow" d="M822,420 C849.0,420 849.0,444 876,444" fill="none" stroke="#59636e" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect width="920" height="506" rx="16" fill="#ffffff"/>
+<rect width="920" height="506" rx="16" fill="url(#dots)"/>
+<rect x="0.5" y="0.5" width="919" height="505" rx="16" fill="none" stroke="#d1d9e0"/>
+<path class="flow" d="M116,100 C116,185.0 140,185.0 140,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M218,200 C218,235.0 187,235.0 187,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M319,100 C319,185.0 233,185.0 233,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M440,200 C440,235.0 280,235.0 280,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M562,100 C562,185.0 327,185.0 327,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M685,200 C685,235.0 373,235.0 373,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<path class="flow" d="M808,100 C808,185.0 420,185.0 420,266" fill="none" stroke="#59636e" stroke-width="1.4" opacity="0.7"/>
+<g transform="translate(116,64) rotate(-3)"><g class="bob" style="animation-delay:0.0s"><rect x="-76.4" y="-34" width="152.8" height="68" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-56.400000000000006" cy="0" r="6" fill="#9a6700"/><text x="-40.400000000000006" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >backnotprop/</text><text x="-40.400000000000006" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >pstack</text><text x="-40.400000000000006" y="26" class="mono" font-size="14" font-weight="400" fill="#9a6700" text-anchor="start" >43 skills</text></g></g>
+<g transform="translate(319,64) rotate(2)"><g class="bob" style="animation-delay:0.4s"><rect x="-69.725" y="-34" width="139.45" height="68" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-49.724999999999994" cy="0" r="6" fill="#9a6700"/><text x="-33.724999999999994" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >Leonxlnx/</text><text x="-33.724999999999994" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >taste-skill</text><text x="-33.724999999999994" y="26" class="mono" font-size="14" font-weight="400" fill="#9a6700" text-anchor="start" >1 skill</text></g></g>
+<g transform="translate(562,64) rotate(-2)"><g class="bob" style="animation-delay:0.8s"><rect x="-117.42500000000001" y="-34" width="234.85000000000002" height="68" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-97.42500000000001" cy="0" r="6" fill="#9a6700"/><text x="-81.42500000000001" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >skovalik/</text><text x="-81.42500000000001" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >perception-first-design</text><text x="-81.42500000000001" y="26" class="mono" font-size="14" font-weight="400" fill="#9a6700" text-anchor="start" >1 skill</text></g></g>
+<g transform="translate(808,64) rotate(3)"><g class="bob" style="animation-delay:1.2000000000000002s"><rect x="-72.19999999999999" y="-34" width="144.39999999999998" height="68" rx="12" fill="#f6f8fa" stroke="#9a6700"/><circle cx="-52.19999999999999" cy="0" r="6" fill="#9a6700"/><text x="-36.19999999999999" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >mattpocock/</text><text x="-36.19999999999999" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >skills</text><text x="-36.19999999999999" y="26" class="mono" font-size="14" font-weight="400" fill="#9a6700" text-anchor="start" >2 skills</text></g></g>
+<g transform="translate(218,164) rotate(2)"><g class="bob" style="animation-delay:1.6s"><rect x="-65.75" y="-34" width="131.5" height="68" rx="12" fill="#f6f8fa" stroke="#8250df"/><circle cx="-45.75" cy="0" r="6" fill="#8250df"/><text x="-29.75" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >mine/</text><text x="-29.75" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >own skills</text><text x="-29.75" y="26" class="mono" font-size="14" font-weight="400" fill="#8250df" text-anchor="start" >8 skills</text></g></g>
+<g transform="translate(440,164) rotate(-2)"><g class="bob" style="animation-delay:2.0s"><rect x="-89.0" y="-34" width="178.0" height="68" rx="12" fill="#f6f8fa" stroke="#0969da"/><circle cx="-69.0" cy="0" r="6" fill="#0969da"/><text x="-53.0" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >pbakaus/</text><text x="-53.0" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >impeccable</text><text x="-53.0" y="26" class="mono" font-size="14" font-weight="400" fill="#0969da" text-anchor="start" >1 skill, forked</text></g></g>
+<g transform="translate(685,164) rotate(-3)"><g class="bob" style="animation-delay:2.4000000000000004s"><rect x="-113.45" y="-34" width="226.9" height="68" rx="12" fill="#f6f8fa" stroke="#0969da"/><circle cx="-93.45" cy="0" r="6" fill="#0969da"/><text x="-77.45" y="-14" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >affaan-m/</text><text x="-77.45" y="7" class="sans" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start" >everything-claude-code</text><text x="-77.45" y="26" class="mono" font-size="14" font-weight="400" fill="#0969da" text-anchor="start" >4 skills, forked</text></g></g>
+<path d="M100,270 L110,370 Q114,406 150,406 L410,406 Q446,406 450,370 L460,270 Z" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
+<rect x="70" y="286" width="34" height="20" rx="10" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
+<rect x="456" y="286" width="34" height="20" rx="10" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
+<ellipse cx="280" cy="270" rx="190" ry="26" fill="#f6f8fa" stroke="#1f2328" stroke-width="2"/>
+<ellipse cx="280" cy="273" rx="172" ry="17" fill="#f1e3c2"/>
+<circle class="bubble" style="animation-delay:0.0s" cx="170" cy="273" r="6" fill="none" stroke="#9a6700" stroke-width="1.4"/>
+<circle class="bubble" style="animation-delay:0.5s" cx="230" cy="278" r="4" fill="none" stroke="#9a6700" stroke-width="1.4"/>
+<circle class="bubble" style="animation-delay:1.0s" cx="290" cy="273" r="7" fill="none" stroke="#9a6700" stroke-width="1.4"/>
+<circle class="bubble" style="animation-delay:1.5s" cx="350" cy="278" r="5" fill="none" stroke="#9a6700" stroke-width="1.4"/>
+<circle class="bubble" style="animation-delay:2.0s" cx="400" cy="273" r="4" fill="none" stroke="#9a6700" stroke-width="1.4"/>
+<text x="280" y="348" class="mono" font-size="28" font-weight="700" fill="#1f2328" text-anchor="middle" >agent-skills</text>
+<text x="280" y="376" class="mono" font-size="14" font-weight="400" fill="#59636e" text-anchor="middle" >build.py: pin · patch · build</text>
+<path class="flame" style="animation-delay:0.0s" d="M170,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<path class="flame" style="animation-delay:0.15s" d="M207,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<path class="flame" style="animation-delay:0.3s" d="M244,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<path class="flame" style="animation-delay:0.44999999999999996s" d="M281,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<path class="flame" style="animation-delay:0.6s" d="M318,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<path class="flame" style="animation-delay:0.75s" d="M355,444 q-9,-12 0,-26 q9,14 0,26 z" fill="#d1600a"/>
+<line x1="130" y1="448" x2="430" y2="448" stroke="#d1d9e0" stroke-width="3" stroke-linecap="round"/>
+<rect x="560" y="256" width="320" height="96" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
+<text x="580" y="282" class="mono" font-size="14" font-weight="600" fill="#59636e" text-anchor="start" letter-spacing="1.5">RECIPE</text>
+<text x="580" y="308" class="mono" font-size="16" font-weight="700" fill="#9a6700" text-anchor="start" >upstreams.toml</text>
+<text x="580" y="332" class="sans" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >pinned to a sha, re-checked weekly</text>
+<rect x="560" y="372" width="320" height="112" rx="10" fill="#f6f8fa" stroke="#1a7f37"/>
+<text x="580" y="398" class="mono" font-size="14" font-weight="600" fill="#59636e" text-anchor="start" letter-spacing="1.5">SERVES</text>
+<text x="580" y="424" class="sans" font-size="17" font-weight="700" fill="#1f2328" text-anchor="start" >60 skills, one copy</text>
+<text x="580" y="448" class="sans" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >Claude Code · Codex · Grok</text>
+<text x="580" y="468" class="sans" font-size="14" font-weight="400" fill="#59636e" text-anchor="start" >Kimi Code · Pi and more</text>
+<path class="flow" d="M558,304 C526.0,304 526.0,296 494,296" fill="none" stroke="#59636e" stroke-width="1.6" marker-end="url(#arrow)"/>
+<path class="flow" d="M452,362 C504.0,362 504.0,428 556,428" fill="none" stroke="#59636e" stroke-width="1.6" marker-end="url(#arrow)"/>
 </svg>
