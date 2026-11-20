@@ -448,7 +448,7 @@ A held-back pin stays where it was. To rebase, check out the new commit, apply t
 
 **Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte. Missing or changed skills exit 1.
 
-**Run development checks:** `uv run tests/run.py`. The PR/main workflow ([`check.yml`](.github/workflows/check.yml)) also builds and verifies `dist/`, fails if the generated graphics or README agent blocks are out of date, and runs the PostgreSQL batching example on PostgreSQL 16.
+**Run development checks:** `uv run tests/run.py`. The PR/main workflow ([`check.yml`](.github/workflows/check.yml)) also builds and verifies `dist/`, and fails if the generated graphics or README agent blocks are out of date.
 
 ## Writing skills that load reliably
 

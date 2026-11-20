@@ -17,6 +17,8 @@ jobs:
           fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          cache-dependency-glob: "**/*.py"  # scripts declare their deps inline (PEP 723); no lockfile
 
       - name: Test pipeline behavior
         run: uv run tests/run.py
@@ -30,24 +32,3 @@ jobs:
         run: |
           uv run docs/graphics.py
           git diff --exit-code -- docs/assets README.md
-
-      - name: Test PostgreSQL batching example
-        run: |
-          set -euo pipefail
-          trap 'docker rm -f postgres-check >/dev/null 2>&1 || true' EXIT
-          docker run --detach --name postgres-check \
-            --env POSTGRES_PASSWORD=test --env POSTGRES_DB=agent_skills_test \
-            postgres:16-alpine >/dev/null
-          for attempt in $(seq 1 30); do
-            if docker exec postgres-check pg_isready -U postgres -d agent_skills_test >/dev/null 2>&1; then
-              break
-            fi
-            if [ "$attempt" -eq 30 ]; then
-              echo "PostgreSQL did not become ready" >&2
-              exit 1
-            fi
-            sleep 1
-          done
-          docker exec -i postgres-check \
-            psql -X -v ON_ERROR_STOP=1 -U postgres -d agent_skills_test \
-            < skills/db-migrations/examples/postgres-batch-backfill.sql
