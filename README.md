@@ -71,7 +71,7 @@ npx skills add mmgordon82/agent-skills#release -g --skill '*' -y    # rerun week
 npx skills add mmgordon82/agent-skills#20261119 -g --skill '*' -y   # or pin one release
 ```
 
-Use `#`, not `@`: `@20261119` is read as a skill name. `npx skills update -g` refreshes skills you already have but never adds new ones, so rerun `add` to pick those up. While the repo is private, this works only for accounts with access (it clones with your git or `gh` login).
+Use `#`, not `@`: `@20261119` is read as a skill name. `npx skills update -g` refreshes skills you already have but never adds new ones, so rerun `add` to pick those up.
 
 **From a release archive:**
 
