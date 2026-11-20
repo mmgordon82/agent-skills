@@ -25,6 +25,6 @@ paths = { pfd = "skills/pfd", "pfd/corpus" = "corpus", "pfd/framework" = "framew
 [mattpocock]
 license_file = "LICENSE"
 repo = "mattpocock/skills"
-rev = "5863806dd4e15c63174bee4e7515a4256792ecfa"
+rev = "abeeaf95660ba9e8b7c753eb38f441ca707a8823"
 license = "MIT"
 paths = { writing-for-agents = "skills/productivity/writing-for-agents", git-guardrails-claude-code = "skills/misc/git-guardrails-claude-code" }
