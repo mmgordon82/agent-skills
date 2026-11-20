@@ -28,6 +28,9 @@ jobs:
           uv run build.py build
           uv run build.py verify --against dist
 
+      - name: Intent checks
+        run: uv run ci/intent_checks.py
+
       - name: Check generated graphics
         run: |
           uv run docs/graphics.py

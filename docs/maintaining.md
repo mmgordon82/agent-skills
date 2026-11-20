@@ -32,7 +32,19 @@ To capture edits you made in your installed skills, run `diff pstack --from ~/.a
 
 ### When an upstream breaks patches
 
-An upstream release can rewrite the lines a patch touches. pstack 0.15.43 did: it rewrote the same paragraphs, renamed the model ids our patches replace, and deleted two skills' model choices outright. The weekly job then fails at the bump step and releases nothing. Rebuild the patches from their intent, not by forcing the old diff on:
+An upstream release can rewrite the lines a patch touches. pstack 0.15.43 did: it rewrote the same paragraphs, renamed the model ids our patches replace, and deleted two skills' model choices outright. The weekly job then fails at the bump step and releases nothing.
+
+**Automatically:** the job then runs [`ci/fix_patches.py`](../ci/fix_patches.py). It lays out each broken upstream at its new commit, has `gpt-6.1-terra` resolve every conflicted file by the patch's header, regenerates the patches and runs the checks below. One retry gets the failures fed back. It opens a PR on `auto-fix/<upstream>-<sha>` (a draft if checks still fail) with what changed, every patch line it dropped and why, and the check results. Review the patch diffs and merge: merging runs the release. Nothing ships without that merge.
+
+Checks the PR must pass, all code ([`ci/intent_checks.py`](../ci/intent_checks.py)); the first four also run on every PR and push:
+
+- Every `SKILL.md` parses as strict YAML, `name` matches its folder, the description is at most 1024 characters, and typed-only skills have the Codex policy.
+- Against the upstream original, a patch changes only `description` and adds or removes only `disable-model-invocation`. Any other frontmatter change fails; allowing a key is a one-line change in `intent_checks.py`.
+- The only YAML file a patch adds is `agents/openai.yaml`, with only `interface.display_name`, `interface.short_description` and `policy.allow_implicit_invocation: false`.
+- pstack skills (`TIERED` in `intent_checks.py`) contain no vendor model ids such as `claude-opus-5-5-high-fast` or `Opus 5.5`; their patches use tiers.
+- Fixer only: every line the old patches added is still there or listed as dropped; no skill flips between typed-only and model-invocable; the model writes only the files git marked as conflicted.
+
+**By hand** (or when the PR's checks fail): rebuild the patches from their intent, not by forcing the old diff on:
 
 ```sh
 uv run build.py bump pstack                       # shows the new commit and which patches fail
@@ -53,13 +65,13 @@ uv run build.py build && uv run tests/run.py
 
 **Check nothing drifted:** `uv run build.py verify` builds to a temp dir and compares every skill with `~/.agents/skills`, byte for byte. Missing or changed skills exit 1.
 
-**Run development checks:** `uv run tests/run.py`. The PR/main workflow ([`check.yml`](../.github/workflows/check.yml)) also builds and verifies `dist/`, and fails if the generated graphics or README agent blocks are out of date.
+**Run development checks:** `uv run tests/run.py`. The PR/main workflow ([`check.yml`](../.github/workflows/check.yml)) also builds and verifies `dist/`, runs `ci/intent_checks.py`, and fails if the generated graphics or README agent blocks are out of date.
 
 ## Releases
 
 [`.github/workflows/release.yml`](../.github/workflows/release.yml) runs every Monday and on manual dispatch (**Actions → release → Run workflow**):
 
-1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released until the patches are rebuilt ([how](#when-an-upstream-breaks-patches)).
+1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released. `ci/fix_patches.py` rebuilds the patches in a PR; merging it releases ([how](#when-an-upstream-breaks-patches)).
 2. `build.py build` writes `dist/`.
 3. [`ci/release.py`](../ci/release.py) compares `dist/` with the last published release, as git trees (file contents and modes). If nothing changed (for example, an upstream commit only touched its CI config), it stops. No release.
 4. Otherwise it commits the moved pins to `main`, then commits `dist/` as one new commit on the **`release` branch**: the skill folders at the root, nothing else, with a `Source: <main sha>` trailer. So `git diff 20261119 20261126` (or GitHub's compare view) shows exactly what changed for users between two releases, and `npx skills add …#release` installs it.
@@ -80,6 +92,8 @@ skills/skill-critique/agents.toml   the agent registry
 build.py               build · verify · diff · bump · workspace · install (uv script)
 tools/npx_agents.py    refresh the npx part of the agent registry
 ci/release.py          compare with the last release, release branch commit, changelog, archives
+ci/fix_patches.py      rebuild broken patches from their Why headers, open a PR
+ci/intent_checks.py    deterministic checks on the built skills (CI and the fixer)
 tests/                 behavioral tests: uv run tests/run.py
 .github/workflows/     release.yml (weekly + manual release), check.yml (PRs and main)
 docs/graphics.py       renders docs/assets/*.svg and the README's agent blocks from the repo data
