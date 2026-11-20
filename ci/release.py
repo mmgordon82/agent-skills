@@ -180,7 +180,7 @@ def main(dry_run: Annotated[bool, typer.Option(help="Write notes and archives to
         summary = "## Changes\n- Updated the agent skill set. Automated changelog generation failed; see the release diff for details."
         typer.echo(f"changelog generation failed: {e}; publishing with fallback notes", err=True)
     notes.write_text(summary + (
-        f"\n\n---\nInstall: `npx skills add mmgordon82/agent-skills#{version} -g --skill '*' -y`, "
+        f"\n\n---\nInstall: `npx skills add mmgordon82/agent-skills#{version} -g --skill '*'` (Node.js 22.20+), "
         f"or extract `agent-skills-{version}.tar.gz` into your skills directory "
         f"(`tar xzf agent-skills-{version}.tar.gz -C ~/.agents/skills`). Skills with the same name are replaced.\n"))
     archives = [shutil.make_archive(str(work / f"agent-skills-{version}"), fmt, root_dir=DIST) for fmt in ("gztar", "zip")]
