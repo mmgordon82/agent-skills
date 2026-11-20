@@ -93,6 +93,13 @@ def checkout(u: Upstream) -> Path:
     return u.cache
 
 
+def remote_head(u: Upstream, rev: str | None = None) -> str:
+    """Full sha of `rev` (default: the upstream's remote HEAD), fetched into the cache."""
+    new = rev or git("ls-remote", f"https://github.com/{u.repo}", "HEAD").split()[0]
+    git("fetch", "-q", "origin", cwd=checkout(u))
+    return git("rev-parse", f"{new}^{{commit}}", cwd=u.cache).strip()
+
+
 def copy(src: Path, dest: Path) -> None:
     if src.is_dir():
         shutil.copytree(src, dest, dirs_exist_ok=True, ignore=shutil.ignore_patterns(*JUNK))
@@ -106,6 +113,9 @@ def copy_upstream(u: Upstream, out: Path) -> None:
     for dest, path in u.paths.items():
         if not (src / path).exists():
             raise GitError(f"{u.repo}@{u.rev[:7]} has no '{path}'")
+        # A symlink would copy whatever it points at on this machine (CI env, keys) into the build.
+        if links := [p for p in [src / path, *(src / path).rglob("*")] if p.is_symlink()]:
+            raise GitError(f"{u.repo}@{u.rev[:7]} has a symlink at '{links[0].relative_to(src)}'; refusing to copy")
         copy(src / path, out / dest)
     if u.license_file:
         for skill in u.skills:
@@ -211,7 +221,11 @@ def diff(
     if upstream not in ups:
         console.print(f"[red]unknown upstream '{upstream}'; have: {', '.join(ups)}[/]")
         raise typer.Exit(1)
-    u, source = ups[upstream], source.expanduser()
+    write_patches(upstream, ups[upstream], source.expanduser())
+
+
+def write_patches(upstream: str, u: Upstream, source: Path) -> None:
+    """Rewrite patches/<upstream>/<skill>.patch from the skills in `source`, keeping each patch's header."""
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
         copy_upstream(u, repo)
@@ -254,9 +268,7 @@ def bump(
     held = []
     for name in names:
         u = ups[name]
-        new = rev or git("ls-remote", f"https://github.com/{u.repo}", "HEAD").split()[0]
-        git("fetch", "-q", "origin", cwd=checkout(u))
-        new = git("rev-parse", f"{new}^{{commit}}", cwd=u.cache).strip()
+        new = remote_head(u, rev)
         if new == u.rev:
             console.print(f"{name}: up to date @{new[:7]}")
             continue
@@ -283,6 +295,36 @@ def bump(
     console.print("[green]pins updated; run build[/]")
 
 
+class PatchResult(BaseModel):
+    patch: str
+    status: str  # applies | merged | conflict
+    conflicts: list[str] = []  # files with conflict markers, relative to the workspace
+
+
+def make_workspace(u: Upstream, upstream: str, into: Path) -> list[PatchResult]:
+    """Lay out `u` at its pin in `into` as a git repo (first commit: plain upstream), then apply each patch,
+    3-way where it doesn't apply cleanly, leaving conflict markers in the files it can't merge."""
+    copy_upstream(u, into)
+    g = lambda *a: git("-c", "user.name=build", "-c", "user.email=build@localhost", "-c", "commit.gpgsign=false", *a, cwd=into)
+    g("init", "-q")
+    (into / ".git" / "objects" / "info" / "alternates").write_text(str(u.cache.resolve() / ".git" / "objects") + "\n")
+    g("add", "-A")
+    g("commit", "-q", "-m", f"{u.repo} @ {u.rev[:7]} (upstream)")
+    results = []
+    for patch in sorted((PATCHES / upstream).glob("*.patch")):
+        try:
+            g("apply", "--whitespace=nowarn", str(patch))
+            results.append(PatchResult(patch=patch.name, status="applies"))
+        except GitError:
+            try:
+                g("apply", "--3way", "--whitespace=nowarn", str(patch))
+                results.append(PatchResult(patch=patch.name, status="merged"))
+            except GitError as e:
+                marked = [l[2:] for l in str(e).splitlines() if l.startswith("U ")]
+                results.append(PatchResult(patch=patch.name, status="conflict", conflicts=marked))
+    return results
+
+
 @app.command()
 def workspace(
     upstream: str,
@@ -298,25 +340,14 @@ def workspace(
     if into.exists():
         console.print(f"[red]{into} exists; pick a new directory[/]")
         raise typer.Exit(1)
-    u = ups[upstream]
-    copy_upstream(u, into)
-    g = lambda *a: git("-c", "user.name=build", "-c", "user.email=build@localhost", "-c", "commit.gpgsign=false", *a, cwd=into)
-    g("init", "-q")
-    (into / ".git" / "objects" / "info" / "alternates").write_text(str(u.cache.resolve() / ".git" / "objects") + "\n")
-    g("add", "-A")
-    g("commit", "-q", "-m", f"{u.repo} @ {u.rev[:7]} (upstream)")
     t = Table("patch", "result", box=None)
-    for patch in sorted((PATCHES / upstream).glob("*.patch")):
-        try:
-            g("apply", "--whitespace=nowarn", str(patch))
-            t.add_row(patch.name, "[green]applies[/]")
-        except GitError:
-            try:
-                g("apply", "--3way", "--whitespace=nowarn", str(patch))
-                t.add_row(patch.name, "[green]merged (3-way); check it still matches the Why[/]")
-            except GitError as e:
-                marked = [l[2:] for l in str(e).splitlines() if l.startswith("U ")]
-                t.add_row(patch.name, f"[red]rewrite from its Why[/]{': conflicts marked in ' + ', '.join(marked) if marked else ''}")
+    for r in make_workspace(ups[upstream], upstream, into):
+        if r.status == "applies":
+            t.add_row(r.patch, "[green]applies[/]")
+        elif r.status == "merged":
+            t.add_row(r.patch, "[green]merged (3-way); check it still matches the Why[/]")
+        else:
+            t.add_row(r.patch, f"[red]rewrite from its Why[/]{': conflicts marked in ' + ', '.join(r.conflicts) if r.conflicts else ''}")
     console.print(t)
     console.print(f"Next: edit {into} until each patch's Why holds again, then\n"
                   f"  uv run build.py diff {upstream} --from {into}   # rewrites patches/{upstream}/, keeps each header\n"
