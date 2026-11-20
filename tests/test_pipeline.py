@@ -72,6 +72,22 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue((dist / "demo" / "new.md").exists())
             self.assertFalse((dist / "demo" / "old.md").exists())
 
+    def test_typed_only_upstream_skills_get_a_codex_policy(self) -> None:
+        with self.temporary_directory() as tmp:
+            root = Path(tmp)
+            skills = {"typed": "---\nname: typed\ndisable-model-invocation: true\n---\n",
+                      "model": "---\nname: model\n---\n", "own-policy": "---\ndisable-model-invocation: true\n---\n"}
+            for name, md in skills.items():
+                (root / name).mkdir()
+                (root / name / "SKILL.md").write_text(md)
+            (root / "own-policy" / "agents").mkdir()
+            (root / "own-policy" / "agents" / "openai.yaml").write_text("keep")
+            for name in skills:
+                build.codex_typed_only(root / name)
+            self.assertIn("allow_implicit_invocation: false", (root / "typed" / "agents" / "openai.yaml").read_text())
+            self.assertFalse((root / "model" / "agents").exists())
+            self.assertEqual((root / "own-policy" / "agents" / "openai.yaml").read_text(), "keep")
+
     def test_verify_accepts_an_identical_install(self) -> None:
         with self.temporary_directory() as tmp:
             root = Path(tmp)

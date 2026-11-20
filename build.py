@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import filecmp
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -109,6 +110,17 @@ def copy_upstream(u: Upstream, out: Path) -> None:
     if u.license_file:
         for skill in u.skills:
             shutil.copy2(src / u.license_file, out / skill / "LICENSE")
+    for skill in u.skills:
+        codex_typed_only(out / skill)
+
+
+def codex_typed_only(skill: Path) -> None:
+    """Codex ignores `disable-model-invocation`; it needs this policy file to keep a skill typed-only."""
+    policy = skill / "agents" / "openai.yaml"
+    if policy.exists() or not re.search(r"^disable-model-invocation:\s*true\s*$", (skill / "SKILL.md").read_text(), re.M):
+        return
+    policy.parent.mkdir(exist_ok=True)
+    policy.write_text("policy:\n  allow_implicit_invocation: false\n")
 
 
 def build_into(out: Path, ups: dict[str, Upstream]) -> list[tuple[str, str, str]]:
