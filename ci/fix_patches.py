@@ -230,8 +230,7 @@ def pr_body(targets: dict[str, str], old: dict[str, build.Upstream], rewrites: d
     return "\n".join(out)
 
 
-def publish(targets: dict[str, str], body: str, draft: bool, dry_run: bool) -> None:
-    branch = "auto-fix/" + "-".join(f"{name}-{rev[:7]}" for name, rev in targets.items())
+def publish(branch: str, targets: dict[str, str], body: str, draft: bool, dry_run: bool) -> None:
     title = "Rebuild patches for " + ", ".join(f"{name}@{rev[:7]}" for name, rev in targets.items())
     sh("git", "checkout", "-B", branch)
     sh("git", "add", "upstreams.toml", "patches")
@@ -239,15 +238,12 @@ def publish(targets: dict[str, str], body: str, draft: bool, dry_run: bool) -> N
     if dry_run:
         print(f"--dry-run: committed on local branch {branch}; not pushed.\n\n{body}")
         return
-    sh("git", "push", "-q", "--force", "origin", branch)
-    body_file = Path(tempfile.mkstemp(suffix=".md")[1])
-    body_file.write_text(body)
-    number = sh("gh", "pr", "list", "--head", branch, "--state", "open", "--json", "number", "-q", ".[0].number").strip()
-    if number:
-        sh("gh", "pr", "edit", number, "--title", title, "--body-file", str(body_file))
-        sh("gh", "pr", "ready", number, *(["--undo"] if draft else []))
-        print(f"updated PR #{number} ({'draft' if draft else 'ready for review'})")
-    else:
+    sh("git", "push", "-q", "--force-with-lease", "origin", branch)
+    # A pull request opened with GITHUB_TOKEN can require approval for its event-triggered check.
+    sh("gh", "workflow", "run", "check.yml", "--ref", branch)
+    with tempfile.TemporaryDirectory() as tmp:
+        body_file = Path(tmp) / "body.md"
+        body_file.write_text(body)
         print(sh("gh", "pr", "create", "--base", "main", "--head", branch, "--title", title,
                  "--body-file", str(body_file), *(["--draft"] if draft else [])).strip())
 
@@ -260,6 +256,14 @@ def run(ask: Ask = ask_model, dry_run: bool = False) -> int:
     if not targets:
         print("every pin's patches apply at upstream HEAD; nothing to fix")
         return 0
+    branch = "auto-fix/" + "-".join(f"{name}-{rev[:7]}" for name, rev in targets.items())
+    if not dry_run:
+        url = sh("gh", "pr", "list", "--base", "main", "--head", branch, "--state", "open",
+                 "--json", "isCrossRepository,url", "-q",
+                 "map(select(.isCrossRepository == false)) | .[0].url // empty").strip()
+        if url:
+            print(f"rebuild already pending review: {url}")
+            return 0
     old_patches = {f"{n}/{p.name}": p.read_text() for n in targets for p in sorted((build.PATCHES / n).glob("*.patch"))}
     with tempfile.TemporaryDirectory(dir=build.CACHE) as t:
         tmp = Path(t)
@@ -280,7 +284,7 @@ def run(ask: Ask = ask_model, dry_run: bool = False) -> int:
             if not problems:
                 break
             feedback = problems
-    publish(targets, pr_body(targets, old, rewrites, problems, total), draft=bool(problems), dry_run=dry_run)
+    publish(branch, targets, pr_body(targets, old, rewrites, problems, total), draft=bool(problems), dry_run=dry_run)
     return 0
 
 

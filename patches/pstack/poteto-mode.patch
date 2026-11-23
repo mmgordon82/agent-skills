@@ -8,7 +8,7 @@ exist, so an agent wastes turns resolving names, or fails.
 Change: model choices go through tiers defined once in poteto-mode's Subagents section:
 strong (a strong model at xhigh: code, prose, judgment), fast (a fast, cheaper model at high:
 mechanical edits, workers, verification, dispatch-only agents), and panel (the strongest model at
-high, a fast model, and a model from another vendor). Every other default names a tier. The
+high, a fast model at high, and a model from another vendor at xhigh). Every other default names a tier. The
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
@@ -31,7 +31,7 @@ Reapply on a new upstream version:
    the strong tier)"; new playbooks (eval.md in 0.15.43) get the same treatment.
 
 diff --git a/poteto-mode/SKILL.md b/poteto-mode/SKILL.md
-index e2b5c04..7e0722e 100644
+index e2b5c04..94f7c88 100644
 --- a/poteto-mode/SKILL.md
 +++ b/poteto-mode/SKILL.md
 @@ -85,15 +85,17 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
@@ -46,7 +46,7 @@ index e2b5c04..7e0722e 100644
 -- Diverse review and design panels: one runner each on `claude-fable-5-2-high`, `claude-opus-5-5-high-fast`, and `gemini-4-neon-xhigh`.
 +- Code, prose, and judgment: **strong**, a strong model at xhigh.
 +- Trivial mechanical edits: **fast**, a fast, cheaper model at high.
-+- Diverse review and design panels: **panel**, one runner each on the strongest model at high, a fast model, and a model from a different vendor when one is available.
++- Diverse review and design panels: **panel**, one runner each on the strongest model at high, a fast model at high, and a model from a different vendor at xhigh when one is available.
  
 -**Fable 5.2 is an exception.** It runs outside a panel only when the user named it for this task or two Opus 5.5 xhigh runs of the same brief failed its check. Say which. Difficulty alone never qualifies.
 +The tiers stand for whatever models your harness offers. `/setup-pstack` maps them to real models; without a settings file, pick the closest models you have.
