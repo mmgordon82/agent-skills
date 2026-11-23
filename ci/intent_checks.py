@@ -10,7 +10,7 @@
 - Against the upstream original, a patch changes only the frontmatter keys in FRONTMATTER_VALUE_CHANGES and
   adds or removes only those in FRONTMATTER_ADD_REMOVE.
 - The only YAML file a patch adds is agents/openai.yaml, with only the keys in OPENAI_YAML_KEYS.
-- Skills from TIERED upstreams name no vendor model ids (SLUG); their patches map models through tiers.
+- Skills from build.TIERED upstreams name no vendor model ids; their patches map models through tiers.
 
 ci/fix_patches.py also runs the fixer-only checks: lines a patch added survive, and typed-only state holds.
 """
@@ -33,13 +33,6 @@ FRONTMATTER_VALUE_CHANGES = {"description"}
 FRONTMATTER_ADD_REMOVE = {"disable-model-invocation"}
 OPENAI_YAML_KEYS = {"interface.display_name", "interface.short_description", "policy.allow_implicit_invocation"}
 MAX_DESCRIPTION = 1024
-# Upstreams whose patches replace model choices with tiers; their skills must name no model.
-TIERED = {"pstack"}
-# Model ids (claude-opus-4-6, gemini-4-neon-high, gpt-6.1-terra, *-high-fast) and versioned model names
-# (Opus 5.5, GPT-5, Gemini 4). Harness names without a version (Claude Code, Kimi Code) don't match.
-SLUG = re.compile(r"\b(?:claude|gemini|gpt|grok|kimi)-[a-z0-9.-]*\d[a-z0-9.-]*"
-                  r"|\b[a-z0-9.-]+-(?:x?high|medium|low)-fast\b"
-                  r"|\b(?:Claude|Opus|Sonnet|Haiku|Fable|Gemini|GPT|Grok|Kimi)[ -]?\d+(?:\.\d+)?\b")
 TEXT = {".md", ".yaml", ".yml", ".toml", ".json", ".py", ".sh", ".txt"}
 
 
@@ -157,7 +150,7 @@ def check_vendor_ids(dist: Path, skills: list[str]) -> list[str]:
             if not f.is_file() or f.suffix not in TEXT:
                 continue
             for n, line in enumerate(f.read_text(errors="ignore").splitlines(), 1):
-                if ids := sorted({m.group(0) for m in SLUG.finditer(line)}, key=len)[-1:]:
+                if ids := sorted({m.group(0) for m in build.MODEL_REF.finditer(line)}, key=len)[-1:]:
                     problems.append(f"{skill}: vendor model id '{ids[0]}' at {f.relative_to(dist)}:{n} (use a tier)")
     return problems
 
@@ -209,7 +202,7 @@ def run_all(dist: Path, ups: dict[str, build.Upstream]) -> list[str]:
         for u in ups.values():
             build.copy_upstream(u, base)
         skills = [s for u in ups.values() for s in u.skills]
-        tiered = [s for name, u in ups.items() if name in TIERED for s in u.skills]
+        tiered = [s for name, u in ups.items() if name in build.TIERED for s in u.skills]
         return (check_skill_files(dist) + check_frontmatter_changes(base, dist, skills)
                 + check_added_yaml(base, dist, skills) + check_vendor_ids(dist, tiered))
     finally:

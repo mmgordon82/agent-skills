@@ -13,7 +13,7 @@ Reapply: add the paragraph right after the reviewer's rules for what may stay. I
 own length rule, drop this patch.
 
 diff --git a/no-comments/references/comment-sicko.md b/no-comments/references/comment-sicko.md
-index d07b171..89a380e 100644
+index d07b17191e9eb95e3dd731a2426f8352ed3465b4..89a380e627a295c3ca18ee08444e7475a098bab6 100644
 --- a/no-comments/references/comment-sicko.md
 +++ b/no-comments/references/comment-sicko.md
 @@ -21,6 +21,8 @@ Only these exceptions get to crawl away.

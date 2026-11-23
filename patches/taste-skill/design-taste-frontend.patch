@@ -12,7 +12,7 @@ Keep when rebasing: everything else, including the skill's own Stop hook (finish
 Reapply: replace the description, add the frontmatter flag, re-add agents/openai.yaml.
 
 diff --git a/design-taste-frontend/SKILL.md b/design-taste-frontend/SKILL.md
-index 7dc7a9f..e5c63f6 100644
+index 7dc7a9fed097364515581a28ec45ef955620eede..e5c63f6ccaa18b6f5e1b619b3512aac557483778 100644
 --- a/design-taste-frontend/SKILL.md
 +++ b/design-taste-frontend/SKILL.md
 @@ -1,16 +1,7 @@
@@ -36,7 +36,7 @@ index 7dc7a9f..e5c63f6 100644
      - hooks:
 diff --git a/design-taste-frontend/agents/openai.yaml b/design-taste-frontend/agents/openai.yaml
 new file mode 100644
-index 0000000..6ecaa86
+index 0000000000000000000000000000000000000000..6ecaa86f32b4f2996ba81abe823e203467123787
 --- /dev/null
 +++ b/design-taste-frontend/agents/openai.yaml
 @@ -0,0 +1,5 @@

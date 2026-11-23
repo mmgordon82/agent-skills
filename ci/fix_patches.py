@@ -161,7 +161,8 @@ def resolve(name: str, u_old: build.Upstream, new: str, ws: Path, ask: Ask, feed
         if r.status != "conflict":
             continue
         if not r.conflicts:
-            raise FixError(f"{r.patch}: doesn't apply and git marked no conflicts (a file it patches is gone?); rebuild it by hand")
+            reason = r.error or "does not apply and git marked no conflicts (a file it patches is gone?)"
+            raise FixError(f"{r.patch}: {reason}; rebuild it by hand")
         patch = build.PATCHES / name / r.patch
         files = {rel: (ws / rel).read_text() for rel in r.conflicts}
         rw, u = ask(prompt(u_old, u_new, patch, files, feedback))

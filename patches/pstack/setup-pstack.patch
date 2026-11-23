@@ -12,9 +12,12 @@ high, a fast model, and a model from another vendor). Every other default names 
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
-new ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
+new workflow ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
 strongest model is an exception"). Drop only rules that exist because of one vendor's ids. Leave
 upstream's Harness section alone; it already covers harnesses without Cursor's ids.
+
+The build accepts model-name and effort-suffix substitutions; tiers and their effort levels remain
+our policy. Other wording changes still require a rebase.
 
 Reapply on a new upstream version:
 1. Search the skill for `claude-`, `gemini-`, `gpt-`, `Fable`, `Opus`, `Sonnet` and `-fast`.
@@ -32,7 +35,7 @@ Reapply on a new upstream version:
    migration rules that match old vendor ids, keeping the generic ones (the `unlimited` budget).
 
 diff --git a/setup-pstack/SKILL.md b/setup-pstack/SKILL.md
-index bfe3faf..47a83a9 100644
+index bfe3fafcb253c92fcb71a45a14c64b0b2143dfc5..47a83a9b520ebe98f70aa11a7c297b58adfcc1f4 100644
 --- a/setup-pstack/SKILL.md
 +++ b/setup-pstack/SKILL.md
 @@ -23,15 +23,12 @@ Enumerate the model slugs you can pass to a subagent in this session (Cursor `Ta

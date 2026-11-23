@@ -19,7 +19,7 @@ Reapply: the frontmatter change, then the four bullets at the end of the list of
 rules, in upstream's current style.
 
 diff --git a/technical-writing/SKILL.md b/technical-writing/SKILL.md
-index 6f53776..a13adfe 100644
+index 6f53776d935064370738bebe79f9fc8f39987ade..a13adfea310a5c5df35910f598cbcb6c0faab48d 100644
 --- a/technical-writing/SKILL.md
 +++ b/technical-writing/SKILL.md
 @@ -1,7 +1,6 @@

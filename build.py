@@ -30,6 +30,11 @@ UPSTREAMS = ROOT / "upstreams.toml"
 DIST = ROOT / "dist"
 SETTINGS = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "agent-skills" / "settings.toml"
 JUNK = {".DS_Store", "__pycache__", ".git"}
+TIERED = {"pstack"}
+# Model ids and versioned display names; harness names such as Claude Code stay intact.
+MODEL_REF = re.compile(r"\b(?:claude|gemini|gpt|grok|kimi)-[a-z0-9.-]*\d(?:[a-z0-9.-]*[a-z0-9])?\b"
+                       r"|\b[a-z0-9.-]+-(?:x?high|medium|low)-fast\b"
+                       r"|\b(?:Claude|Opus|Sonnet|Haiku|Fable|Gemini|GPT|Grok|Kimi)[ -]?\d+(?:\.\d+)?\b")
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help=__doc__)
 console = Console()
@@ -55,13 +60,76 @@ class GitError(RuntimeError):
     pass
 
 
-def git(*args: str, cwd: Path | None = None) -> str:
+def git(*args: str, cwd: Path | None = None, input: str | None = None) -> str:
     # Ceiling stops git from resolving this repo when it runs in a staging dir under .cache/.
     env = {**os.environ, "GIT_CEILING_DIRECTORIES": str(CACHE)}
-    r = subprocess.run(["git", *args], cwd=cwd, env=env, capture_output=True, text=True)
+    r = subprocess.run(["git", *args], cwd=cwd, env=env, input=input, capture_output=True, text=True)
     if r.returncode:
         raise GitError((r.stderr or r.stdout).strip())
     return r.stdout
+
+
+def adapt_model_patch(text: str, out: Path) -> tuple[str, list[tuple[str, str]]] | None:
+    """Adapt only uniquely matched preimages whose non-model text is unchanged."""
+    # shortcut: quoted paths and missing final newlines use normal repair; extend if an upstream needs them.
+    if "\\ No newline at end of file" in text:
+        return None
+    lines, changes, path, i = text.splitlines(keepends=True), [], None, 0
+    mask = MODEL_REF.split
+    while i < len(lines):
+        if lines[i].startswith("--- "):
+            path = Path(lines[i][6:].rstrip("\n")) if lines[i].startswith("--- a/") else None
+            if path and (path.is_absolute() or ".." in path.parts):
+                return None
+        if not lines[i].startswith("@@ "):
+            i += 1
+            continue
+        end = i + 1
+        while end < len(lines) and lines[end][:1] in {" ", "+", "-"}:
+            end += 1
+        old = [j for j in range(i + 1, end) if lines[j][0] in " -"]
+        if old:
+            if path is None or not (out / path).is_file():
+                return None
+            try:
+                source = (out / path).read_text().splitlines(keepends=True)
+            except (OSError, UnicodeError):
+                return None
+            wanted = [mask(lines[j][1:]) for j in old]
+            masked = [mask(line) for line in source]
+            matches = [start for start in range(len(source) - len(old) + 1)
+                       if masked[start:start + len(old)] == wanted]
+            if len(matches) != 1:
+                return None
+            start = matches[0]
+            preimage = source[start:start + len(old)]
+            before_names = set(MODEL_REF.findall("".join(lines[j][1:] for j in old)))
+            after_names = set(MODEL_REF.findall("".join(preimage)))
+            # An older reference elsewhere can identify a reworded original target.
+            elsewhere = "".join(source[:start] + source[start + len(old):])
+            if (before_names - after_names) & set(MODEL_REF.findall(elsewhere)):
+                return None
+            for j, actual in zip(old, preimage):
+                changes.extend((a, b) for a, b in zip(MODEL_REF.findall(lines[j][1:]), MODEL_REF.findall(actual)) if a != b)
+                lines[j] = lines[j][0] + actual
+        i = end
+    return ("".join(lines), changes) if changes else None
+
+
+def apply_patch(patch: Path, out: Path, *, tiered: bool = False) -> None:
+    try:
+        git("apply", "--whitespace=nowarn", str(patch), cwd=out)
+    except GitError as original:
+        adapted = adapt_model_patch(patch.read_text(), out) if tiered else None
+        if adapted is None:
+            raise
+        text, changes = adapted
+        try:
+            git("apply", "--whitespace=nowarn", "-", cwd=out, input=text)
+        except GitError:
+            raise original from None
+        for old, new in dict.fromkeys(changes):
+            console.print(f"{patch.name}: model reference {old} → {new} (tier policy unchanged)")
 
 
 def load() -> dict[str, Upstream]:
@@ -140,7 +208,7 @@ def build_into(out: Path, ups: dict[str, Upstream]) -> list[tuple[str, str, str]
         copy_upstream(u, out)
         for patch in sorted((PATCHES / name).glob("*.patch")):
             try:
-                git("apply", "--whitespace=nowarn", str(patch), cwd=out)
+                apply_patch(patch, out, tiered=name in TIERED)
                 rows.append((name, patch.name, ""))
             except GitError as e:
                 rows.append((name, patch.name, str(e)))
@@ -238,7 +306,7 @@ def write_patches(upstream: str, u: Upstream, source: Path) -> None:
             copy(source / skill, repo / skill)
         g("add", "-A")
         for skill in u.skills:
-            text = g("diff", "--cached", "--binary", "--", skill)
+            text = g("diff", "--cached", "--binary", "--full-index", "--", skill)
             path = PATCHES / upstream / f"{skill}.patch"
             header = path.read_text().split("diff --git", 1)[0] if path.exists() else ""
             if text:
@@ -299,6 +367,7 @@ class PatchResult(BaseModel):
     patch: str
     status: str  # applies | merged | conflict
     conflicts: list[str] = []  # files with conflict markers, relative to the workspace
+    error: str = ""  # failures for which git could not produce conflict markers
 
 
 def make_workspace(u: Upstream, upstream: str, into: Path) -> list[PatchResult]:
@@ -313,15 +382,25 @@ def make_workspace(u: Upstream, upstream: str, into: Path) -> list[PatchResult]:
     results = []
     for patch in sorted((PATCHES / upstream).glob("*.patch")):
         try:
-            g("apply", "--whitespace=nowarn", str(patch))
+            apply_patch(patch, into, tiered=upstream in TIERED)
             results.append(PatchResult(patch=patch.name, status="applies"))
         except GitError:
             try:
+                # Model-only bumps can leave a patch's base older than the pin in a partial clone.
+                for base in dict.fromkeys(re.findall(r"^index ([0-9a-f]{40})\.\.", patch.read_text(), re.M)):
+                    if base != "0" * 40:
+                        try:
+                            g("cat-file", "-e", base)
+                        except GitError:
+                            try:
+                                git("cat-file", "-e", base, cwd=u.cache)
+                            except GitError as e:
+                                raise GitError(f"cannot load patch base {base}: {e or 'object unavailable'}") from None
                 g("apply", "--3way", "--whitespace=nowarn", str(patch))
                 results.append(PatchResult(patch=patch.name, status="merged"))
             except GitError as e:
                 marked = [l[2:] for l in str(e).splitlines() if l.startswith("U ")]
-                results.append(PatchResult(patch=patch.name, status="conflict", conflicts=marked))
+                results.append(PatchResult(patch=patch.name, status="conflict", conflicts=marked, error="" if marked else str(e)))
     return results
 
 
@@ -347,7 +426,8 @@ def workspace(
         elif r.status == "merged":
             t.add_row(r.patch, "[green]merged (3-way); check it still matches the Why[/]")
         else:
-            t.add_row(r.patch, f"[red]rewrite from its Why[/]{': conflicts marked in ' + ', '.join(r.conflicts) if r.conflicts else ''}")
+            detail = "conflicts marked in " + ", ".join(r.conflicts) if r.conflicts else r.error
+            t.add_row(r.patch, f"[red]rewrite from its Why[/]{': ' + detail if detail else ''}")
     console.print(t)
     console.print(f"Next: edit {into} until each patch's Why holds again, then\n"
                   f"  uv run build.py diff {upstream} --from {into}   # rewrites patches/{upstream}/, keeps each header\n"

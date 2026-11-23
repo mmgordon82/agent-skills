@@ -22,7 +22,7 @@ Reapply: frontmatter, then our rules at the end of the numbered list in upstream
 "How to apply" section, then the script (it never conflicts).
 
 diff --git a/unslop/SKILL.md b/unslop/SKILL.md
-index 583fe48..12ae967 100644
+index 583fe48499c8f8f71bd2deef4228d1f0129c03c7..12ae96724e45380c143438264ec05f75aab12a01 100644
 --- a/unslop/SKILL.md
 +++ b/unslop/SKILL.md
 @@ -1,7 +1,6 @@
@@ -55,7 +55,7 @@ index 583fe48..12ae967 100644
 +- Lint a file: `python3 scripts/ste_lint.py path/to/draft.md` (from this skill's directory). The score is heuristic violations per 100 words. Compare versions by score delta and inspect each hit, since code samples cause false positives.
 diff --git a/unslop/scripts/ste_lint.py b/unslop/scripts/ste_lint.py
 new file mode 100755
-index 0000000..929c06a
+index 0000000000000000000000000000000000000000..929c06a63026e54fc67ff6f1f54965d25cd69a9f
 --- /dev/null
 +++ b/unslop/scripts/ste_lint.py
 @@ -0,0 +1,240 @@

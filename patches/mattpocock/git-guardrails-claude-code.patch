@@ -14,7 +14,7 @@ Keep when rebasing: upstream's hook untouched; ours is a separate script.
 Reapply: re-add the script and the paragraph after upstream's hook setup steps.
 
 diff --git a/git-guardrails-claude-code/SKILL.md b/git-guardrails-claude-code/SKILL.md
-index 58bcdd8..c8f3395 100644
+index 58bcdd875b164093b95f436fa32a65c6cb5eb572..c8f3395810fece391e0720d62714f58a7a8403fd 100644
 --- a/git-guardrails-claude-code/SKILL.md
 +++ b/git-guardrails-claude-code/SKILL.md
 @@ -17,6 +17,8 @@ Sets up a PreToolUse hook that intercepts and blocks dangerous git commands befo
@@ -28,7 +28,7 @@ index 58bcdd8..c8f3395 100644
  ### 1. Ask scope
 diff --git a/git-guardrails-claude-code/scripts/block-weakened-checks.sh b/git-guardrails-claude-code/scripts/block-weakened-checks.sh
 new file mode 100755
-index 0000000..f989f4c
+index 0000000000000000000000000000000000000000..f989f4ce1684baa3d2a3be602da6609eadd56657
 --- /dev/null
 +++ b/git-guardrails-claude-code/scripts/block-weakened-checks.sh
 @@ -0,0 +1,27 @@

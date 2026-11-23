@@ -12,9 +12,12 @@ high, a fast model, and a model from another vendor). Every other default names 
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
-new ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
+new workflow ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
 strongest model is an exception"). Drop only rules that exist because of one vendor's ids. Leave
 upstream's Harness section alone; it already covers harnesses without Cursor's ids.
+
+The build accepts model-name and effort-suffix substitutions; tiers and their effort levels remain
+our policy. Other wording changes still require a rebase.
 
 Reapply on a new upstream version:
 1. Search the skill for `claude-`, `gemini-`, `gpt-`, `Fable`, `Opus`, `Sonnet` and `-fast`.
@@ -29,7 +32,7 @@ Reapply on a new upstream version:
 6. swarm: Phase A step 3's missing-line default -> the fast tier from poteto-mode.
 
 diff --git a/swarm/SKILL.md b/swarm/SKILL.md
-index cf6d20c..1cf5307 100644
+index cf6d20c87258bc7753076d86f26a22c5734aae93..1cf5307619c260ca9da6a25bb2ef02a4801d9957 100644
 --- a/swarm/SKILL.md
 +++ b/swarm/SKILL.md
 @@ -19,7 +19,7 @@ Open a todolist with one entry per phase before launching anything.

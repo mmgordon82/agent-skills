@@ -17,6 +17,10 @@ For working on this repo. Using the skills: [README](../README.md).
 
 ## Working with patches
 
+For pstack, the build can retarget a failed patch when each hunk matches uniquely after masking model IDs and versioned model names. It prints the substitutions and keeps the patch's added text unchanged. Model effort suffixes can change; standalone effort rules, other wording changes, extra model entries, ambiguous matches, and older references remaining outside the hunk still require repair. Other upstreams use exact patch matching.
+
+Generated patches include full base hashes so three-way repair can fetch older base blobs from partial upstream clones.
+
 **Change a patched skill:**
 
 ```sh
@@ -41,7 +45,7 @@ Checks the PR must pass, all code ([`ci/intent_checks.py`](../ci/intent_checks.p
 - Every `SKILL.md` parses as strict YAML, `name` matches its folder, the description is at most 1024 characters, and typed-only skills have the Codex policy.
 - Against the upstream original, a patch changes only `description` and adds or removes only `disable-model-invocation`. Any other frontmatter change fails; allowing a key is a one-line change in `intent_checks.py`.
 - The only YAML file a patch adds is `agents/openai.yaml`, with only `interface.display_name`, `interface.short_description` and `policy.allow_implicit_invocation: false`.
-- pstack skills (`TIERED` in `intent_checks.py`) contain no vendor model ids such as `claude-opus-5-5-high-fast` or `Opus 5.5`; their patches use tiers.
+- pstack skills (`TIERED` in `build.py`) contain no vendor model ids such as `claude-opus-5-5-high-fast` or `Opus 5.5`; their patches use tiers. The same model-reference pattern drives patch matching and this check.
 - Fixer only: every line the old patches added is still there or listed as dropped; no skill flips between typed-only and model-invocable; the model writes only the files git marked as conflicted.
 
 **By hand** (or when the PR's checks fail): rebuild the patches from their intent, not by forcing the old diff on:

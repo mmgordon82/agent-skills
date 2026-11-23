@@ -12,9 +12,12 @@ high, a fast model, and a model from another vendor). Every other default names 
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
-new ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
+new workflow ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
 strongest model is an exception"). Drop only rules that exist because of one vendor's ids. Leave
 upstream's Harness section alone; it already covers harnesses without Cursor's ids.
+
+The build accepts model-name and effort-suffix substitutions; tiers and their effort levels remain
+our policy. Other wording changes still require a rebase.
 
 Reapply on a new upstream version:
 1. Search the skill for `claude-`, `gemini-`, `gpt-`, `Fable`, `Opus`, `Sonnet` and `-fast`.
@@ -30,7 +33,7 @@ Reapply on a new upstream version:
    -> the panel tier without its strongest seat; the vendor rule stays.
 
 diff --git a/arena/SKILL.md b/arena/SKILL.md
-index 5b28744..d0db8f2 100644
+index 5b28744354aec570ed0985d98b07352c2402c7a0..d0db8f2e1a532438de8eb77cb150ef9ec8f9c2f6 100644
 --- a/arena/SKILL.md
 +++ b/arena/SKILL.md
 @@ -14,7 +14,7 @@ Every candidate gets the same prompt, so the prompt is the contract.

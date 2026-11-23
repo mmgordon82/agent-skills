@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["typer>=0.12", "pydantic>=2.7", "rich>=13", "tomlkit>=0.13", "openai>=2"]
+# dependencies = ["typer>=0.12", "pydantic>=2.7", "rich>=13", "tomlkit>=0.13", "openai>=2", "pyyaml>=6"]
 # ///
 """Run the standard-library behavioral test suite with the scripts' dependencies."""
 

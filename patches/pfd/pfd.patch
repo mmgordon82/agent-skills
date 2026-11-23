@@ -16,7 +16,7 @@ Reapply: frontmatter, the path-conventions line, delete the version history, re-
 upstream adds top-level dirs that SKILL.md references, add them to `paths` in upstreams.toml.
 
 diff --git a/pfd/SKILL.md b/pfd/SKILL.md
-index b4944d7..650b5e6 100644
+index b4944d7a595017ed645b82706eeeee70cd64b3d5..650b5e6bb9b6546df97119c7e880bc5eb9772c95 100644
 --- a/pfd/SKILL.md
 +++ b/pfd/SKILL.md
 @@ -1,14 +1,7 @@
@@ -67,7 +67,7 @@ index b4944d7..650b5e6 100644
 -- **v0.1** (2026-02-19): Initial proto. Derivation protocol, 5 layers, PFD-S, 5 accumulated learnings.
 diff --git a/pfd/agents/openai.yaml b/pfd/agents/openai.yaml
 new file mode 100644
-index 0000000..17b8a82
+index 0000000000000000000000000000000000000000..17b8a823826a83d6552bc02a6d36c0da7da09f87
 --- /dev/null
 +++ b/pfd/agents/openai.yaml
 @@ -0,0 +1,5 @@
@@ -77,7 +77,7 @@ index 0000000..17b8a82
 +policy:
 +  allow_implicit_invocation: false
 diff --git a/pfd/references/insights-log.md b/pfd/references/insights-log.md
-index d6cf027..329b931 100644
+index d6cf027cd60a27c163c06b11a6b8700298dfe8c9..329b931240d9108a0c039e5042ac29cc42a4f3c6 100644
 --- a/pfd/references/insights-log.md
 +++ b/pfd/references/insights-log.md
 @@ -18,3 +18,11 @@ the rest stay as searchable history.

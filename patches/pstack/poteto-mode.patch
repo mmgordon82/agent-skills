@@ -12,9 +12,12 @@ high, a fast model, and a model from another vendor). Every other default names 
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
-new ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
+new workflow ideas in tier terms instead of dropping them (0.15.43's "Fable 5.2 is an exception" became "the
 strongest model is an exception"). Drop only rules that exist because of one vendor's ids. Leave
 upstream's Harness section alone; it already covers harnesses without Cursor's ids.
+
+The build accepts model-name and effort-suffix substitutions; tiers and their effort levels remain
+our policy. Other wording changes still require a rebase.
 
 Reapply on a new upstream version:
 1. Search the skill for `claude-`, `gemini-`, `gpt-`, `Fable`, `Opus`, `Sonnet` and `-fast`.
@@ -31,7 +34,7 @@ Reapply on a new upstream version:
    the strong tier)"; new playbooks (eval.md in 0.15.43) get the same treatment.
 
 diff --git a/poteto-mode/SKILL.md b/poteto-mode/SKILL.md
-index 2b14f3d..7e0722e 100644
+index 2b14f3d4f50dc8de6aae114ee5fe7e6e6253fc96..7e0722e79c6d84fab5230e8920bc9e8c82194a09 100644
 --- a/poteto-mode/SKILL.md
 +++ b/poteto-mode/SKILL.md
 @@ -85,15 +85,17 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
@@ -59,7 +62,7 @@ index 2b14f3d..7e0722e 100644
  You own every subagent's work. Review the diff and write your own summary. A second opinion is the same prompt on another vendor's model.
  
 diff --git a/poteto-mode/playbooks/bug-fix.md b/poteto-mode/playbooks/bug-fix.md
-index 0e9e734..b4d3868 100644
+index 0e9e734ed6e940a7ac512befb73f03bb7e6a150c..b4d3868cb9b75a68801bdf00a838694cac02f0ec 100644
 --- a/poteto-mode/playbooks/bug-fix.md
 +++ b/poteto-mode/playbooks/bug-fix.md
 @@ -6,7 +6,7 @@ Be scientific. Every shipped line traces to runtime evidence. Belt-and-suspender
@@ -72,7 +75,7 @@ index 0e9e734..b4d3868 100644
  5. Stage the commits so the failing repro lands before the fix in git history. See the **tdd** skill for the failing-test-first cadence when the bug has a cheap local test path. Skip it when the test would be expensive, integration-heavy, or unclear.
     This is the canonical **sequence-verifiable-units** principle skill, the failing test first and the fix on top.
 diff --git a/poteto-mode/playbooks/eval.md b/poteto-mode/playbooks/eval.md
-index cfc8502..4635374 100644
+index cfc850270f4927c4e3f2d2da3d08a3d04bd3177b..4635374a68e6099f596c24b997ac0e2ba12c4d2b 100644
 --- a/poteto-mode/playbooks/eval.md
 +++ b/poteto-mode/playbooks/eval.md
 @@ -17,7 +17,7 @@
@@ -85,7 +88,7 @@ index cfc8502..4635374 100644
  6. **Verify the chain from transcripts, not self-report.** Read each candidate's local transcript in the active workspace's session directory (in Cursor, the `agent-transcripts/` directory the system prompt names. Other harnesses: see **Harness** in SKILL.md). Do not glob across every project's directory. That crosses workspace boundaries and reads private chats from unrelated projects. Look at which files each candidate actually opened. Grade chain-following from the files it really read plus the shape of the code, never from the candidate's own claims.
  7. **Read every candidate output yourself** end to end. Compare to the judge's verdict. Disagreement means a model is biased or the rubric is ambiguous. Synthesize.
 diff --git a/poteto-mode/playbooks/feature.md b/poteto-mode/playbooks/feature.md
-index 27d76a5..d78e499 100644
+index 27d76a56eb074ed1d8910b289b318d1aa0b80c0a..d78e499aa8d966d4821a2af20a0ff9ef55237294 100644
 --- a/poteto-mode/playbooks/feature.md
 +++ b/poteto-mode/playbooks/feature.md
 @@ -9,7 +9,7 @@
@@ -98,7 +101,7 @@ index 27d76a5..d78e499 100644
  6. Rebase into small, ordered commits. Stack follow-ups.
     Use the **sequence-verifiable-units** principle skill, building, verifying, and committing each small unit before the next.
 diff --git a/poteto-mode/playbooks/hillclimb.md b/poteto-mode/playbooks/hillclimb.md
-index dbcff8f..5e2cc62 100644
+index dbcff8f923eab39976bb2e34b89b328d4385e825..5e2cc625231f07c1bb7bf7bee67cb94a8d890d2a 100644
 --- a/poteto-mode/playbooks/hillclimb.md
 +++ b/poteto-mode/playbooks/hillclimb.md
 @@ -9,7 +9,7 @@ Core discipline: one change, one measurement, keep or revert. Never stack untest
@@ -111,7 +114,7 @@ index dbcff8f..5e2cc62 100644
     - Accept only when the metric moves past noise and the gate stays green. Otherwise revert the change in full. A tweak that "might help" is not kept.
     - One commit per accepted fix, staging only the files you changed (`git add <files>`, never `-A`). Log the row either way, kept or reverted.
 diff --git a/poteto-mode/playbooks/perf-issue.md b/poteto-mode/playbooks/perf-issue.md
-index f5264c2..cdc7ec6 100644
+index f5264c29516b7c6b63369369f58e07c8db5c0773..cdc7ec669ba21714576e9a8e6388792279889ad4 100644
 --- a/poteto-mode/playbooks/perf-issue.md
 +++ b/poteto-mode/playbooks/perf-issue.md
 @@ -14,7 +14,7 @@
@@ -124,7 +127,7 @@ index f5264c2..cdc7ec6 100644
  4. Parse and compare the artifacts (JSON to sqlite, diff). "Inconclusive" or wrong-surface is not a pass. Flag it.
  5. Cite the measurement in the PR.
 diff --git a/poteto-mode/playbooks/refactoring.md b/poteto-mode/playbooks/refactoring.md
-index d4db06b..1f40d06 100644
+index d4db06bb057f7b8a7df68d90896d9078a0656938..1f40d06dca2acda6d40ac2d7cbc89d96a614f533 100644
 --- a/poteto-mode/playbooks/refactoring.md
 +++ b/poteto-mode/playbooks/refactoring.md
 @@ -8,7 +8,7 @@ If the cleanup reveals a missing feature or a real bug, split it out and ship th

@@ -16,7 +16,7 @@ Reapply: if upstream's description now starts with its trigger words, drop that 
 "Across agents" rule upstream now covers; keep the rest as one section at the end of SKILL-MECHANICS.md.
 
 diff --git a/writing-for-agents/SKILL-MECHANICS.md b/writing-for-agents/SKILL-MECHANICS.md
-index 9cdbdb2..fe12416 100644
+index 9cdbdb22aadc438755392216e75ad9a14cc9832e..fe12416a8d812c4c2363d3bebb47f246b740b76d 100644
 --- a/writing-for-agents/SKILL-MECHANICS.md
 +++ b/writing-for-agents/SKILL-MECHANICS.md
 @@ -20,3 +20,14 @@ The invocation cut of splitting (the sequence cut lives in `SKILL.md`): split of
@@ -35,7 +35,7 @@ index 9cdbdb2..fe12416 100644
 +- **A must-read reference file gets a bold line at the top of `SKILL.md`**, with when to read it. A mention in passing gets skipped.
 +- **One copy on disk.** The real folder lives in `~/.agents/skills` and every agent's skills dir links to it; copies drift.
 diff --git a/writing-for-agents/SKILL.md b/writing-for-agents/SKILL.md
-index a37608d..ce81994 100644
+index a37608daf6e835e767deecfb498facecaaba82ba..ce819942abf495c71ab00fc9c48e7a4670059adb 100644
 --- a/writing-for-agents/SKILL.md
 +++ b/writing-for-agents/SKILL.md
 @@ -1,6 +1,6 @@
