@@ -38,7 +38,7 @@ To capture edits you made in your installed skills, run `diff pstack --from ~/.a
 
 An upstream release can rewrite the lines a patch touches. pstack 0.15.43 did: it rewrote the same paragraphs, renamed the model ids our patches replace, and deleted two skills' model choices outright. The weekly job then fails at the bump step and releases nothing.
 
-**Automatically:** the job then runs [`ci/fix_patches.py`](../ci/fix_patches.py). It lays out each broken upstream at its new commit, has `gpt-6.1-terra` resolve every conflicted file by the patch's header, regenerates the patches and runs the checks below. One retry gets the failures fed back. It opens a PR on `auto-fix/<upstream>-<sha>` (a draft if checks still fail) with what changed, every patch line it dropped and why, and the check results. Review the patch diffs and merge: merging runs the release. Nothing ships without that merge.
+**Automatically:** the job then runs [`ci/fix_patches.py`](../ci/fix_patches.py). It lays out each broken upstream at its new commit, has `gpt-6.1-terra` resolve every conflicted file by the patch's header, regenerates the patches and runs the checks below. One retry gets the failures fed back. It opens a PR on `auto-fix/<upstream>-<sha>` (a draft if checks still fail) with what changed, every patch line it dropped and why, and the check results. Review the patch diffs and merge, then run **Actions → release → Run workflow** or wait for the next weekly release.
 
 Checks the PR must pass, all code ([`ci/intent_checks.py`](../ci/intent_checks.py)); the first four also run on every PR and push:
 
@@ -76,7 +76,7 @@ uv run build.py build && uv run tests/run.py
 
 [`.github/workflows/release.yml`](../.github/workflows/release.yml) runs every Monday and on manual dispatch (**Actions → release → Run workflow**):
 
-1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released. `ci/fix_patches.py` rebuilds the patches in a PR; merging it releases ([how](#when-an-upstream-breaks-patches)).
+1. `build.py bump` moves every pin to its upstream `HEAD`. If any upstream's patches no longer apply, the job fails right here: nothing is built or released. `ci/fix_patches.py` rebuilds the patches in a PR; review and merge it before the next scheduled or manual release ([how](#when-an-upstream-breaks-patches)).
 2. `build.py build` writes `dist/`.
 3. [`ci/release.py`](../ci/release.py) compares `dist/` with the last published release, as git trees (file contents and modes). If nothing changed (for example, an upstream commit only touched its CI config), it stops. No release.
 4. Otherwise it commits the moved pins to `main`, then commits `dist/` as one new commit on the **`release` branch**: the skill folders at the root, nothing else, with a `Source: <main sha>` trailer. So `git diff 20261119 20261126` (or GitHub's compare view) shows exactly what changed for users between two releases, and `npx skills add …#release` installs it.

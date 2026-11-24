@@ -1,15 +1,13 @@
 # Weekly: move every upstream pin to its HEAD, rebuild, and if the built skills differ from the last
 # release: commit them to the `release` branch, tag it with the date, and publish a GitHub release
 # with a changelog and archives. If any upstream's patches no longer apply, nothing is released:
-# ci/fix_patches.py rebuilds them from their Why headers in a PR, and merging that PR releases.
+# ci/fix_patches.py rebuilds them from their Why headers in a PR; merge it, then run this workflow.
 name: release
 
 on:
   schedule:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:
-  pull_request:
-    types: [closed]
 
 permissions:
   actions: write
@@ -18,18 +16,12 @@ permissions:
 
 jobs:
   release:
-    # Any closed PR triggers this workflow; only a merged auto-fix PR from this repo releases.
-    if: >-
-      github.event_name != 'pull_request' || (github.event.pull_request.merged &&
-      github.event.pull_request.base.ref == 'main' &&
-      startsWith(github.event.pull_request.head.ref, 'auto-fix/') &&
-      github.event.pull_request.head.repo.full_name == github.repository)
     concurrency: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || 'main' }}
+          ref: main
           fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v10.3.3
@@ -37,10 +29,8 @@ jobs:
           cache-dependency-glob: "**/*.py"  # scripts declare their deps inline (PEP 723); no lockfile
 
       # A moved upstream whose patches no longer apply stops the job here: no build, no release.
-      # ci/fix_patches.py rebuilds those patches in a PR; review and merge it to release.
-      # A merged auto-fix PR releases exactly what it reviewed: no new bump.
+      # ci/fix_patches.py rebuilds those patches in a PR; review, merge, then run this workflow.
       - name: Bump upstream pins
-        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -50,7 +40,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             uv run ci/fix_patches.py
-            echo "::error::An upstream moved and its patches no longer apply. Nothing was released. The rebuilt patches are in a PR (above); review and merge it to release."
+            echo "::error::An upstream moved and its patches no longer apply. Nothing was released. The rebuilt patches are in a PR (above); review, merge, then run this workflow again."
             exit 1
           fi
 

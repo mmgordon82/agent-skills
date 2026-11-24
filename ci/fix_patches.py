@@ -9,7 +9,7 @@ For each upstream whose patches no longer apply at its remote HEAD: lay out a wo
 ask the model to resolve each conflicted file by the patch's header, regenerate the patches, rebuild, and run
 ci/intent_checks.py plus two fixer-only checks (added lines survive; typed-only state holds). One retry
 with the failures fed back. Then push `auto-fix/<upstream>-<sha>` and open a PR (a draft if checks still
-fail). Nothing is released here; merging the PR runs the release workflow.
+fail). Nothing is released here; after merging, run the release workflow or wait for its weekly schedule.
 
 Needs a clean working tree, OPENAI_API_KEY, and (unless --dry-run) gh and push rights.
 """
@@ -214,7 +214,8 @@ def attempt(targets: dict[str, str], old: dict[str, build.Upstream], old_patches
 
 def pr_body(targets: dict[str, str], old: dict[str, build.Upstream], rewrites: dict, problems: list[str], usage: Usage) -> str:
     out = ["Upstream moved and some patches stopped applying. This PR rebuilds them from their `Why:` headers "
-           f"with `{MODEL}`, then checks the result. **Review the patch diffs**: merging releases them.", ""]
+           f"with `{MODEL}`, then checks the result. **Review the patch diffs** before merging. "
+           "Then run **Actions → release → Run workflow**, or wait for the weekly release.", ""]
     for name, new in targets.items():
         u = old[name]
         log = build.git("log", "--oneline", f"{u.rev}..{new}", "--", *u.paths.values(), cwd=u.cache).strip()
