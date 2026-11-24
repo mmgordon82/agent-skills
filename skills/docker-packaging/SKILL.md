@@ -1,6 +1,6 @@
 ---
 name: docker-packaging
-description: Use when designing or packaging a self-hosted service or Docker image. One small dockerizable app, existing pinned images over new Dockerfiles, Docker only where it validates something.
+description: Use when designing or packaging a self-hosted service or Docker image. One small dockerizable app, existing tagged images over new Dockerfiles, Docker only where it validates something.
 ---
 
 # Docker packaging
@@ -9,8 +9,9 @@ description: Use when designing or packaging a self-hosted service or Docker ima
 - Online dependencies (CDNs, fonts, APIs, package registries) are fine unless the user says the
   target is offline. Then also follow the `airgap` skill.
 - Package and run self-hosted services with Docker. Look for an existing official or
-  well-maintained tagged image before writing a Dockerfile; pin the tag (`name:tag@sha256:…` for
-  releases).
+  well-maintained tagged image before writing a Dockerfile. Use a version tag at the level the app
+  needs (`postgres:16`, `node:22`), never `latest`. Add a digest (`name:tag@sha256:…`) only where
+  one exact build matters, such as a release image you must be able to roll back to.
 - Ordinary local development and tests don't need Docker when host-local commands validate them
   faithfully (see `run-validation`).
 
@@ -27,7 +28,7 @@ conventions; don't rewrite working packaging for style. Add only what the servic
 
 For a new Dockerfile:
 
-- Start from a small, maintained base and apply the pinning policy above to every `FROM` and
+- Start from a small, maintained base and apply the tag rule above to every `FROM` and
   Compose `image:`.
 - Install from the project's lockfile. Use multi-stage builds when build tools or development
   dependencies should not ship in the runtime image.

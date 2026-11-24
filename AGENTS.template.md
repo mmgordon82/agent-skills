@@ -122,3 +122,6 @@ Before writing any of it, read the `agent-workdir` skill (`~/.agents/skills/agen
 - READMEs/docs target Linux users (Ubuntu/Debian) — I'm the only one on a Mac, and the
   docs are for the team, not me. No macOS instructions/commands in docs unless I ask.
 - Comment only what isn't obvious from the code; keep comments short.
+- Don't narrate how something is versioned: write "the Playwright image", not "the pinned
+  Playwright image". Say "pin" only when pinning is the topic. Tests check or cover behavior;
+  they don't "pin" it.

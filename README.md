@@ -178,7 +178,7 @@ pstack skills that `/poteto-mode` and the other pstack skills call by name. All 
 | `web-perimeter-audit` | fork of everything-claude-code | Passive curl probes against a live domain: exposed `.git`, `.env` and lockfiles, CORS reflection, cache poisoning, HSTS/CSP, cookie flags. Includes nginx and Caddy hardening snippets, tested in Docker. |
 | `db-migrations` | fork of everything-claude-code | Postgres-safe migrations: lock modes, `lock_timeout`, `CREATE INDEX CONCURRENTLY`, expand-contract, batched backfills, Django and golang-migrate. |
 | `git-guardrails-claude-code` | mattpocock + patch | Claude Code hooks that block destructive git commands. The patch adds a hook that blocks `--no-verify` and edits to lint, format and pre-commit configs. |
-| `docker-packaging` | own | Docker-first packaging: one small dockerizable app, existing pinned images over new Dockerfiles, Docker only where it validates something. |
+| `docker-packaging` | own | Docker-first packaging: one small dockerizable app, existing tagged images over new Dockerfiles, Docker only where it validates something. |
 | `airgap` | own | Only for targets you call offline. Build it: internal mirrors (optionally from [settings](#customize)), sensible version pins, no public fetches, vendored assets. Prove it: isolated runs (`--network none`, Linux netns), a network probe, a browser request audit, Playwright offline and native-error recipes, a public-host scan. |
 
 ### Writing

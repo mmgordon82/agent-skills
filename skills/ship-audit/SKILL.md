@@ -89,7 +89,7 @@ If a deployed URL is in scope, run HTTP checks only against that URL and avoid c
 
 ### Self-hosted release (Docker services)
 
-- **Images pinned by tag and digest.** Every `image:` in compose and every `FROM` uses `name:tag@sha256:...`, not a bare tag or `latest`.
+- **Images use version tags.** Every `image:` in compose and every `FROM` names a version tag at the level the service needs (`postgres:16`), not a bare name or `latest`. A digest only where one exact build matters.
 - **Backup and restore both tested.** A backup job exists, and a restore into a scratch database or container has been run and checked with a query that proves the data is there. An untested restore counts as no backup.
 - **Rollback path.** The previous image digest is recorded, and the pending migrations are backward-compatible with it (expand-contract), so redeploying the old image works.
 - **Healthchecks.** Services define `healthcheck:` (compose) or `HEALTHCHECK` (Dockerfile), and dependents use `depends_on: condition: service_healthy` where start order matters.
@@ -162,7 +162,7 @@ Blockers:
 
 High-value fixes:
 - Add a health check that verifies database and payment-provider reachability.
-- Pin `postgres:16` in compose.yaml by digest.
+- Replace `postgres:latest` in compose.yaml with `postgres:16`.
 
 Evidence checked:
 - `app/payments/webhooks.py`
