@@ -23,10 +23,10 @@ Once delegating, actually spawn the subagents. If spawning fails, say so. Don't 
 
 | Role | Job | Writes? | Model |
 |---|---|---|---|
-| explorer | map code paths, symbols, tests, config | no | fast |
-| worker | bounded implementation with named file ownership | yes | fast |
-| tester | reproduce, run targeted tests, report exact evidence | tests only | fast |
-| researcher | version-specific APIs and docs, from primary sources | no | fast |
+| explorer | map code paths, symbols, tests, config | no | strong at high |
+| worker | bounded implementation with named file ownership | yes | strong at high |
+| tester | reproduce, run targeted tests, report exact evidence | tests only | strong at high |
+| researcher | version-specific APIs and docs, from primary sources | no | strong at high |
 | reviewer | correctness, security, regression, and missing-test review | no | strong |
 
 Use the harness's role definitions when it has them (e.g. `~/.codex/agents/*.toml`). Otherwise pick models per the tiers in the **poteto-mode** skill's Subagents section. Only the root escalates a subagent to a stronger model, when it reports a real reasoning blocker.
