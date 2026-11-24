@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="560" viewBox="0 0 920 560" role="img" aria-labelledby="t">
+<title id="t">A saved patch removes claude-opus-5-5-high-fast and adds the strong tier. The upstream file now says gemini-4-neon-xhigh in that same sentence. The build copies gemini-4-neon-xhigh onto the removed line only. The skill ships with the strong tier.</title>
+<style>
+  .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }
+  .mono { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; }
+</style>
+<rect width="920" height="560" rx="16" fill="#ffffff"/>
+<rect x="0.5" y="0.5" width="919" height="559" rx="16" fill="none" stroke="#d1d9e0"/>
+<rect x="24" y="24" width="428" height="188" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
+<text x="40" y="52" class="sans" font-size="14" font-weight="600" fill="#59636e">1. Patch on disk</text>
+<text x="40" y="84" class="mono" font-size="14" fill="#cf222e">- Default: `claude-opus-5-5-high-fast`.</text>
+<text x="40" y="112" class="mono" font-size="14" fill="#1a7f37">+ Default: the strong tier.</text>
+<text x="40" y="150" class="sans" font-size="14" fill="#1f2328">Red: the name the patch expects to delete.</text>
+<text x="40" y="172" class="sans" font-size="14" fill="#1f2328">Green: the words that must ship. Kept as written.</text>
+<rect x="468" y="24" width="428" height="188" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
+<text x="484" y="52" class="sans" font-size="14" font-weight="600" fill="#59636e">2. Upstream file now</text>
+<text x="484" y="98" class="mono" font-size="14" fill="#1f2328">Default: `gemini-4-neon-xhigh`.</text>
+<text x="484" y="150" class="sans" font-size="14" fill="#1f2328">Same sentence. New model name.</text>
+<text x="484" y="172" class="sans" font-size="14" fill="#1f2328">Hide both names: the sentences match once.</text>
+<text x="40" y="248" class="sans" font-size="15" font-weight="600" fill="#0969da">Copy the current line onto the removed line. Do not touch the added line.</text>
+<rect x="24" y="272" width="560" height="188" rx="10" fill="#f6f8fa" stroke="#d1d9e0"/>
+<text x="40" y="300" class="sans" font-size="14" font-weight="600" fill="#59636e">3. Patch used for this build only</text>
+<text x="40" y="336" class="mono" font-size="14" fill="#cf222e">- Default: `gemini-4-neon-xhigh`.</text>
+<text x="40" y="364" class="mono" font-size="14" fill="#1a7f37">+ Default: the strong tier.</text>
+<text x="40" y="406" class="sans" font-size="14" fill="#1f2328">patches/ is not edited.</text>
+<text x="40" y="428" class="sans" font-size="14" fill="#1f2328">The next build repeats this if the name moves again.</text>
+<rect x="600" y="272" width="296" height="188" rx="10" fill="#dafbe1" stroke="#1a7f37"/>
+<text x="616" y="300" class="sans" font-size="14" font-weight="600" fill="#1a7f37">4. Text in the skill</text>
+<text x="616" y="350" class="mono" font-size="14" fill="#1f2328">Default: the strong tier.</text>
+<text x="616" y="406" class="sans" font-size="14" fill="#1f2328">The tier words.</text>
+<text x="616" y="428" class="sans" font-size="14" fill="#1f2328">Not the new model id.</text>
+<text x="40" y="500" class="sans" font-size="14" fill="#59636e">Printed line:</text>
+<text x="40" y="528" class="mono" font-size="14" fill="#1f2328">model reference claude-opus-5-5-high-fast → gemini-4-neon-xhigh (tier policy unchanged)</text>
+</svg>

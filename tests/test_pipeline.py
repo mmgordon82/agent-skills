@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 from typer.testing import CliRunner
 
 import build
-from ci import fix_patches, release
+from ci import fix_patches, intent_checks, release
 
 
 class PipelineTests(unittest.TestCase):
@@ -61,7 +61,7 @@ class PipelineTests(unittest.TestCase):
                 patch.object(build, "DIST", dist),
                 patch.object(build, "staging", return_value=staged),
                 patch.object(build, "load", return_value={}),
-                patch.object(build, "build_into", return_value=[("patches", "broken.patch", "does not apply")]),
+                patch.object(build, "build_into", return_value=[build.Step("patches", "broken.patch", "does not apply")]),
             ):
                 result = self.runner.invoke(build.app, ["build"])
             self.assertEqual(result.exit_code, 1)
@@ -283,7 +283,7 @@ class PipelineTests(unittest.TestCase):
                 patch.object(build, "checkout", return_value=root),
                 patch.object(build, "git", side_effect=fake_git),
                 patch.object(build, "staging", return_value=staged),
-                patch.object(build, "build_into", return_value=[("up", "demo.patch", "does not apply")]),
+                patch.object(build, "build_into", return_value=[build.Step("up", "demo.patch", "does not apply")]),
             ):
                 result = self.runner.invoke(build.app, ["bump", "up", "--rev", new_rev])
 
@@ -291,6 +291,19 @@ class PipelineTests(unittest.TestCase):
             self.assertIn(old_rev, config.read_text())
             self.assertNotIn(new_rev, config.read_text())
             self.assertFalse(staged.exists())
+
+    def test_tier_policy_is_a_field_on_the_upstream(self) -> None:
+        ups = build.load()
+        self.assertTrue(ups["pstack"].tiered)
+        self.assertFalse(ups["mattpocock"].tiered)
+
+    def test_an_added_intent_check_is_reported(self) -> None:
+        def extra(built: intent_checks.BuiltSkills) -> list[str]:
+            return [f"extra:{built.dist.name}"]
+
+        built = intent_checks.BuiltSkills(Path("dist-dir"), Path("base"), {})
+        with patch.object(intent_checks, "CHECKS", [extra]):
+            self.assertEqual(intent_checks.run_checks(built), ["extra:dist-dir"])
 
     def test_install_is_idempotent(self) -> None:
         with self.temporary_directory() as tmp:

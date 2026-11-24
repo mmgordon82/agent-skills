@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal, NamedTuple
 
 import tomlkit
 import typer
@@ -30,7 +30,6 @@ UPSTREAMS = ROOT / "upstreams.toml"
 DIST = ROOT / "dist"
 SETTINGS = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "agent-skills" / "settings.toml"
 JUNK = {".DS_Store", "__pycache__", ".git"}
-TIERED = {"pstack"}
 # Model ids and versioned display names; harness names such as Claude Code stay intact.
 MODEL_REF = re.compile(r"\b(?:claude|gemini|gpt|grok|kimi)-[a-z0-9.-]*\d(?:[a-z0-9.-]*[a-z0-9])?\b"
                        r"|\b[a-z0-9.-]+-(?:x?high|medium|low)-fast\b"
@@ -41,11 +40,13 @@ console = Console()
 
 
 class Upstream(BaseModel):
+    name: str = ""  # table key in upstreams.toml; load() sets it. Not a field you write twice.
     repo: str = Field(pattern=r"^[\w.-]+/[\w.-]+$")
     rev: str = Field(pattern=r"^[0-9a-f]{40}$")
     license: str
     paths: dict[str, str]  # dist path -> path in the upstream repo, copied in order
     license_file: str | None = None  # copied into every skill dir, before patches
+    tiered: bool = False  # retarget model-id patches; forbid vendor model ids in this upstream's skills
 
     @property
     def cache(self) -> Path:
@@ -54,6 +55,23 @@ class Upstream(BaseModel):
     @property
     def skills(self) -> list[str]:
         return sorted({dest.split("/")[0] for dest in self.paths})
+
+    @property
+    def patch_dir(self) -> Path:
+        if not self.name:
+            raise GitError(f"{self.repo} has no registry name")
+        return PATCHES / self.name
+
+
+def with_name(u: Upstream, name: str) -> Upstream:
+    """The table key wins over a name carried on the record."""
+    return u if u.name == name else u.model_copy(update={"name": name})
+
+
+class Step(NamedTuple):
+    source: str
+    item: str
+    error: str = ""  # empty when this patch or own skill copied cleanly
 
 
 class GitError(RuntimeError):
@@ -135,7 +153,7 @@ def apply_patch(patch: Path, out: Path, *, tiered: bool = False) -> None:
 def load() -> dict[str, Upstream]:
     data = tomlkit.parse(UPSTREAMS.read_text()).unwrap()
     try:
-        ups = {name: Upstream.model_validate(u) for name, u in data.items()}
+        ups = {name: with_name(Upstream.model_validate(u), name) for name, u in data.items()}
     except ValidationError as e:
         console.print(f"[red]{UPSTREAMS.name} is invalid:[/]\n{e}")
         raise typer.Exit(1)
@@ -201,29 +219,30 @@ def codex_typed_only(skill: Path) -> None:
     policy.write_text("policy:\n  allow_implicit_invocation: false\n")
 
 
-def build_into(out: Path, ups: dict[str, Upstream]) -> list[tuple[str, str, str]]:
-    """Returns (source, item, error-or-empty) rows."""
+def build_into(out: Path, ups: dict[str, Upstream]) -> list[Step]:
+    """Copy each upstream, apply its patches, then copy skills/. One row per patch and own skill."""
     rows = []
-    for name, u in ups.items():
+    for name, upstream in ups.items():
+        u = with_name(upstream, name)
         copy_upstream(u, out)
-        for patch in sorted((PATCHES / name).glob("*.patch")):
+        for patch in sorted(u.patch_dir.glob("*.patch")):
             try:
-                apply_patch(patch, out, tiered=name in TIERED)
-                rows.append((name, patch.name, ""))
+                apply_patch(patch, out, tiered=u.tiered)
+                rows.append(Step(name, patch.name))
             except GitError as e:
-                rows.append((name, patch.name, str(e)))
+                rows.append(Step(name, patch.name, str(e)))
     for skill in sorted(p for p in OWN.iterdir() if p.is_dir()):
         copy(skill, out / skill.name)
-        rows.append(("skills/", skill.name, ""))
+        rows.append(Step("skills/", skill.name))
     return rows
 
 
-def show(rows: list[tuple[str, str, str]]) -> bool:
+def show(rows: list[Step]) -> bool:
     t = Table("source", "item", "result", box=None)
-    for src, item, err in rows:
-        t.add_row(src, item, f"[red]{err}[/]" if err else "[green]ok[/]")
+    for row in rows:
+        t.add_row(row.source, row.item, f"[red]{row.error}[/]" if row.error else "[green]ok[/]")
     console.print(t)
-    return not any(err for *_, err in rows)
+    return not any(row.error for row in rows)
 
 
 def files(d: Path) -> set[str]:
@@ -289,10 +308,10 @@ def diff(
     if upstream not in ups:
         console.print(f"[red]unknown upstream '{upstream}'; have: {', '.join(ups)}[/]")
         raise typer.Exit(1)
-    write_patches(upstream, ups[upstream], source.expanduser())
+    write_patches(with_name(ups[upstream], upstream), source.expanduser())
 
 
-def write_patches(upstream: str, u: Upstream, source: Path) -> None:
+def write_patches(u: Upstream, source: Path) -> None:
     """Rewrite patches/<upstream>/<skill>.patch from the skills in `source`, keeping each patch's header."""
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
@@ -307,7 +326,7 @@ def write_patches(upstream: str, u: Upstream, source: Path) -> None:
         g("add", "-A")
         for skill in u.skills:
             text = g("diff", "--cached", "--binary", "--full-index", "--", skill)
-            path = PATCHES / upstream / f"{skill}.patch"
+            path = u.patch_dir / f"{skill}.patch"
             header = path.read_text().split("diff --git", 1)[0] if path.exists() else ""
             if text:
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -365,12 +384,12 @@ def bump(
 
 class PatchResult(BaseModel):
     patch: str
-    status: str  # applies | merged | conflict
+    status: Literal["applies", "merged", "conflict"]
     conflicts: list[str] = []  # files with conflict markers, relative to the workspace
     error: str = ""  # failures for which git could not produce conflict markers
 
 
-def make_workspace(u: Upstream, upstream: str, into: Path) -> list[PatchResult]:
+def make_workspace(u: Upstream, into: Path) -> list[PatchResult]:
     """Lay out `u` at its pin in `into` as a git repo (first commit: plain upstream), then apply each patch,
     3-way where it doesn't apply cleanly, leaving conflict markers in the files it can't merge."""
     copy_upstream(u, into)
@@ -380,9 +399,9 @@ def make_workspace(u: Upstream, upstream: str, into: Path) -> list[PatchResult]:
     g("add", "-A")
     g("commit", "-q", "-m", f"{u.repo} @ {u.rev[:7]} (upstream)")
     results = []
-    for patch in sorted((PATCHES / upstream).glob("*.patch")):
+    for patch in sorted(u.patch_dir.glob("*.patch")):
         try:
-            apply_patch(patch, into, tiered=upstream in TIERED)
+            apply_patch(patch, into, tiered=u.tiered)
             results.append(PatchResult(patch=patch.name, status="applies"))
         except GitError:
             try:
@@ -420,7 +439,7 @@ def workspace(
         console.print(f"[red]{into} exists; pick a new directory[/]")
         raise typer.Exit(1)
     t = Table("patch", "result", box=None)
-    for r in make_workspace(ups[upstream], upstream, into):
+    for r in make_workspace(with_name(ups[upstream], upstream), into):
         if r.status == "applies":
             t.add_row(r.patch, "[green]applies[/]")
         elif r.status == "merged":

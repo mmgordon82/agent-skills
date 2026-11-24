@@ -35,13 +35,14 @@ class ModelTests(unittest.TestCase):
         return subprocess.run(["git", "-C", str(self.repo), *args], check=True, text=True,
                               capture_output=True).stdout.strip()
 
-    def commit(self, model="claude-opus-5-5-high-fast", instruction="Keep this instruction.", effort="high"):
+    def commit(self, model="claude-opus-5-5-high-fast", instruction="Keep this instruction.", effort="high",
+               tiered=True):
         self.md.write_text(f"---\nname: demo\ndescription: A demo\n---\n\n{instruction}\n"
                            f"Default: `{model}`.\nBudget: {effort}.\nAliases: `auto`, `inherit-parent`.\n")
         self.git("add", "-A")
         self.git("-c", "user.name=test", "-c", "user.email=test@example.com", "commit", "-qm", "upstream")
         return build.Upstream(repo="acme/skills", rev=self.git("rev-parse", "HEAD"), license="MIT",
-                              paths={"demo": "skills/demo"})
+                              paths={"demo": "skills/demo"}, tiered=tiered)
 
     def invoke(self, u, *args, upstream="pstack"):
         with patch.object(build, "load", return_value={upstream: u}):
@@ -74,7 +75,8 @@ class ModelTests(unittest.TestCase):
         u = self.commit()
         result = self.invoke(u, "build")
         self.assertEqual(result.exit_code, 0, result.output)
-        self.assertIn("vendor model id", intent_checks.check_vendor_ids(build.DIST, ["demo"])[0])
+        problems = intent_checks.run_checks(intent_checks.BuiltSkills(build.DIST, build.DIST, {"acme": u}))
+        self.assertTrue(any("vendor model id" in problem for problem in problems))
 
     def test_workspace_can_merge_a_real_conflict_after_normalization(self):
         old = self.commit()
@@ -111,11 +113,29 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((ws / "demo/SKILL.md").read_text(), expected)
 
     def test_other_upstreams_still_require_exact_patch_text(self):
-        old = self.commit()
+        old = self.commit(tiered=False)
         self.tier_patch(old, upstream="demo")
-        new = self.commit(model="gemini-4-neon-xhigh")
+        new = self.commit(model="gemini-4-neon-xhigh", tiered=False)
         result = self.invoke(new, "build", upstream="demo")
         self.assertEqual(result.exit_code, 1, result.output)
+
+    def test_tiered_flag_retargets_an_upstream_that_is_not_named_pstack(self):
+        old = self.commit(tiered=True)
+        expected = self.tier_patch(old, upstream="acme")
+        new = self.commit(model="gemini-4-neon-xhigh", tiered=True)
+        result = self.invoke(new, "build", upstream="acme")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertEqual((build.DIST / "demo/SKILL.md").read_text(), expected)
+
+    def test_vendor_model_check_follows_tiered_under_any_name(self):
+        u = self.commit()
+        result = self.invoke(u, "build", upstream="acme")
+        self.assertEqual(result.exit_code, 0, result.output)
+        for tiered in (False, True):
+            with self.subTest(tiered=tiered):
+                pinned = u.model_copy(update={"tiered": tiered})
+                problems = [p for p in intent_checks.run_all(build.DIST, {"acme": pinned}) if "vendor model id" in p]
+                self.assertEqual(bool(problems), tiered)
 
     def test_changed_words_extra_models_and_ambiguous_matches_are_refused(self):
         old = self.commit()

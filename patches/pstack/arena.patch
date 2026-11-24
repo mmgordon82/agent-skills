@@ -6,9 +6,10 @@ Problem: pstack's defaults name Cursor's model catalog (`claude-opus-*-fast`, `c
 exist, so an agent wastes turns resolving names, or fails.
 
 Change: model choices go through tiers defined once in poteto-mode's Subagents section:
-strong (a strong model at xhigh: code, prose, judgment), fast (a fast, cheaper model at high:
-mechanical edits, workers, verification, dispatch-only agents), and panel (the strongest model at
-high, a fast model, and a model from another vendor). Every other default names a tier. The
+strong (a strong model at xhigh: code, prose, judgment; the same model at high for mechanical
+edits, workers, and verification; the same model at medium for a dispatch-only agent), and panel
+(the strongest model at high, a strong model at high, and a model from another vendor at xhigh).
+Every other default names a tier. The
 settings file, role lines, budgets and `inherit-parent`/`auto` stay exactly as upstream has them.
 
 Keep when rebasing: upstream's roles, settings-file paths and budget mechanics. Restate upstream's
@@ -21,9 +22,11 @@ our policy. Other wording changes still require a rebase.
 
 Reapply on a new upstream version:
 1. Search the skill for `claude-`, `gemini-`, `gpt-`, `Fable`, `Opus`, `Sonnet` and `-fast`.
-2. Replace each default model with its tier: code, prose and judgment -> strong; workers,
-   verification and dispatch-only agents -> fast; review and design panels -> panel; the arena
-   cross-judge pool -> panel without its strongest seat.
+2. Replace each default model with its tier. The effort token is the last token, or the one
+   before a trailing `-fast`. The suffix is a speed variant of that same model. `xhigh-fast` ->
+   strong at xhigh (code, prose, judgment). `high-fast` -> strong at high (workers, verification,
+   and the panel's middle seat). `medium-fast` -> strong at medium (dispatch-only). Panels ->
+   panel; the arena cross-judge pool -> panel without its strongest seat.
 3. Replace "rejects a slug ... same family" fallbacks with "use the closest valid model from the
    error or your harness's model list, and say so". Delete family/prefix rules.
 4. Rewrite vendor statements generally ("Fable counts as Claude" -> "all models from one company

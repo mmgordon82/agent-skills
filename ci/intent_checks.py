@@ -10,7 +10,7 @@
 - Against the upstream original, a patch changes only the frontmatter keys in FRONTMATTER_VALUE_CHANGES and
   adds or removes only those in FRONTMATTER_ADD_REMOVE.
 - The only YAML file a patch adds is agents/openai.yaml, with only the keys in OPENAI_YAML_KEYS.
-- Skills from build.TIERED upstreams name no vendor model ids; their patches map models through tiers.
+- Skills from an upstream with `tiered = true` name no vendor model ids; their patches map models through tiers.
 
 ci/fix_patches.py also runs the fixer-only checks: lines a patch added survive, and typed-only state holds.
 """
@@ -21,6 +21,8 @@ import os
 import re
 import shutil
 import sys
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -34,6 +36,27 @@ FRONTMATTER_ADD_REMOVE = {"disable-model-invocation"}
 OPENAI_YAML_KEYS = {"interface.display_name", "interface.short_description", "policy.allow_implicit_invocation"}
 MAX_DESCRIPTION = 1024
 TEXT = {".md", ".yaml", ".yml", ".toml", ".json", ".py", ".sh", ".txt"}
+
+
+@dataclass(frozen=True)
+class BuiltSkills:
+    """One built tree, the unpatched upstream copies, and the upstream records that produced them.
+
+    An always-on check is `Check`: it reads this and returns problem strings. Append it to `CHECKS`.
+    """
+
+    dist: Path
+    base: Path
+    upstreams: dict[str, build.Upstream]
+
+    def skills(self) -> list[str]:
+        return [skill for upstream in self.upstreams.values() for skill in upstream.skills]
+
+    def tiered_skills(self) -> list[str]:
+        return [skill for upstream in self.upstreams.values() if upstream.tiered for skill in upstream.skills]
+
+
+Check = Callable[[BuiltSkills], list[str]]
 
 
 class StrictLoader(yaml.SafeLoader):
@@ -76,8 +99,9 @@ def flat_keys(data: dict, prefix: str = "") -> set[str]:
     return keys
 
 
-def check_skill_files(dist: Path) -> list[str]:
+def check_skill_files(built: BuiltSkills) -> list[str]:
     problems = []
+    dist = built.dist
     for md in sorted(dist.glob("*/SKILL.md")):
         skill = md.parent.name
         try:
@@ -101,8 +125,9 @@ def check_skill_files(dist: Path) -> list[str]:
     return problems
 
 
-def check_frontmatter_changes(base: Path, dist: Path, skills: list[str]) -> list[str]:
+def check_frontmatter_changes(built: BuiltSkills) -> list[str]:
     problems = []
+    base, dist, skills = built.base, built.dist, built.skills()
     for skill in skills:
         try:
             a, b = frontmatter(base / skill / "SKILL.md"), frontmatter(dist / skill / "SKILL.md")
@@ -118,8 +143,9 @@ def check_frontmatter_changes(base: Path, dist: Path, skills: list[str]) -> list
     return problems
 
 
-def check_added_yaml(base: Path, dist: Path, skills: list[str]) -> list[str]:
+def check_added_yaml(built: BuiltSkills) -> list[str]:
     problems = []
+    base, dist, skills = built.base, built.dist, built.skills()
     for skill in skills:
         for f in sorted((dist / skill).rglob("*")):
             rel = f.relative_to(dist / skill)
@@ -143,8 +169,9 @@ def check_added_yaml(base: Path, dist: Path, skills: list[str]) -> list[str]:
     return problems
 
 
-def check_vendor_ids(dist: Path, skills: list[str]) -> list[str]:
+def check_vendor_ids(built: BuiltSkills) -> list[str]:
     problems = []
+    dist, skills = built.dist, built.tiered_skills()
     for skill in skills:
         for f in sorted((dist / skill).rglob("*")):
             if not f.is_file() or f.suffix not in TEXT:
@@ -195,16 +222,25 @@ def check_typed_state(old_dist: Path, new_dist: Path, skills: list[str]) -> list
     return problems
 
 
+# Always-on checks. A new one takes BuiltSkills and returns problem strings; append it here.
+# Fixer-only checks (added lines, typed-only state) stay separate: they need the previous build.
+CHECKS: list[Check] = [check_skill_files, check_frontmatter_changes, check_added_yaml, check_vendor_ids]
+
+
+def run_checks(built: BuiltSkills) -> list[str]:
+    problems = []
+    for check in CHECKS:
+        problems.extend(check(built))
+    return problems
+
+
 def run_all(dist: Path, ups: dict[str, build.Upstream]) -> list[str]:
-    """Every check that holds for any build; compares patched skills with fresh upstream copies at their pins."""
+    """Every always-on check; compares patched skills with fresh upstream copies at their pins."""
     base = build.staging()
     try:
         for u in ups.values():
             build.copy_upstream(u, base)
-        skills = [s for u in ups.values() for s in u.skills]
-        tiered = [s for name, u in ups.items() if name in build.TIERED for s in u.skills]
-        return (check_skill_files(dist) + check_frontmatter_changes(base, dist, skills)
-                + check_added_yaml(base, dist, skills) + check_vendor_ids(dist, tiered))
+        return run_checks(BuiltSkills(dist, base, ups))
     finally:
         shutil.rmtree(base, ignore_errors=True)
 

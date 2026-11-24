@@ -134,7 +134,7 @@ def broken(ups: dict[str, build.Upstream]) -> dict[str, str]:
         out_dir = build.staging()
         try:
             rows = build.build_into(out_dir, {name: u.model_copy(update={"rev": new})})
-            if any(err for *_, err in rows):
+            if any(row.error for row in rows):
                 out[name] = new
         except build.GitError as e:
             raise FixError(f"{name}: can't lay out {u.repo}@{new[:7]} ({e}); fix upstreams.toml by hand") from None
@@ -153,17 +153,17 @@ def prompt(u_old: build.Upstream, u_new: build.Upstream, patch: Path, files: dic
     return "\n\n".join(parts)
 
 
-def resolve(name: str, u_old: build.Upstream, new: str, ws: Path, ask: Ask, feedback: list[str]) -> tuple[list[tuple[str, Rewrite]], Usage]:
+def resolve(u_old: build.Upstream, new: str, ws: Path, ask: Ask, feedback: list[str]) -> tuple[list[tuple[str, Rewrite]], Usage]:
     """Workspace at `new`, model-resolved conflicts written back, patches regenerated. Returns each rewrite."""
     u_new = u_old.model_copy(update={"rev": new})
     rewrites, usage = [], Usage()
-    for r in build.make_workspace(u_new, name, ws):
+    for r in build.make_workspace(u_new, ws):
         if r.status != "conflict":
             continue
         if not r.conflicts:
             reason = r.error or "does not apply and git marked no conflicts (a file it patches is gone?)"
             raise FixError(f"{r.patch}: {reason}; rebuild it by hand")
-        patch = build.PATCHES / name / r.patch
+        patch = u_new.patch_dir / r.patch
         files = {rel: (ws / rel).read_text() for rel in r.conflicts}
         rw, u = ask(prompt(u_old, u_new, patch, files, feedback))
         usage.input_tokens += u.input_tokens
@@ -176,7 +176,7 @@ def resolve(name: str, u_old: build.Upstream, new: str, ws: Path, ask: Ask, feed
                 raise FixError(f"{r.patch}: model left conflict markers in {f.path}")
             (ws / f.path).write_text(f.content)
         rewrites.append((r.patch, rw))
-    build.write_patches(name, u_new, ws)
+    build.write_patches(u_new, ws)
     return rewrites, usage
 
 
@@ -194,7 +194,7 @@ def attempt(targets: dict[str, str], old: dict[str, build.Upstream], old_patches
     rewrites, usage = {}, Usage()
     for name, new in targets.items():
         ws = Path(tempfile.mkdtemp(dir=tmp, prefix=f"{name}-"))
-        rewrites[name], u = resolve(name, old[name], new, ws, ask, feedback)
+        rewrites[name], u = resolve(old[name], new, ws, ask, feedback)
         usage.input_tokens += u.input_tokens
         usage.output_tokens += u.output_tokens
     ups = build.load()
@@ -202,7 +202,7 @@ def attempt(targets: dict[str, str], old: dict[str, build.Upstream], old_patches
     shutil.rmtree(new_dist)
     new_dist.mkdir()
     rows = build.build_into(new_dist, ups)
-    problems = [f"{src}/{item}: still doesn't apply: {err}" for src, item, err in rows if err]
+    problems = [f"{row.source}/{row.item}: still doesn't apply: {row.error}" for row in rows if row.error]
     if not problems:
         dropped = {f"{name}/{patch}": {d.line.strip() for d in rw.dropped} for name, rws in rewrites.items() for patch, rw in rws}
         skills = [s for name in targets for s in ups[name].skills]

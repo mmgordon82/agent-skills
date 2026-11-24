@@ -131,7 +131,7 @@ A `/` before a name means the skill is **typed-only**: it runs when you type `/n
 | `/arena` | pstack + patch | N candidates on the same task; pick a base, graft the best parts of the losers into it. |
 | `/architect` | pstack | Sketch types, signatures and module structure before code, then steer implementation. |
 | `/reflect` | pstack | Reads the session transcript for lasting lessons and turns each into an edit on an existing skill. |
-| `setup-pstack` | pstack + patch | Map pstack roles to *your* models through tiers (strong / fast / panel). |
+| `setup-pstack` | pstack + patch | Map pstack roles to *your* models through tiers (strong / panel). |
 | `adversarial-review` | own | Runs a different agent CLI (Claude, Codex, Grok, Kimi, Pi or any other) headless and read-only to attack your work: bugs, holes, unproven claims, cases you didn't expect. You verify each finding before acting. |
 
 ### Used by /poteto-mode
@@ -201,9 +201,9 @@ Each line is the first line of the patch's `Why:` header. Below it, every header
 | [pfd/pfd](patches/pfd/pfd.patch) | Typed-only /pfd, paths fixed for the flattened layout, version history cut, Codex typed-only. |
 | [pstack/arena](patches/pstack/arena.patch) | Use the panel tier for runners and the judge pool, and model-agnostic fallbacks, instead of Cursor model ids. |
 | [pstack/no-comments](patches/pstack/no-comments.patch) | Comments that survive are one line, two at most. |
-| [pstack/poteto-mode](patches/pstack/poteto-mode.patch) | Define the model tiers (strong, fast, panel) in the Subagents section; playbooks use them instead of Cursor model ids. |
-| [pstack/setup-pstack](patches/pstack/setup-pstack.patch) | Configure tiers (strong, fast, panel) mapped to the models a harness has, instead of writing Cursor model ids. |
-| [pstack/swarm](patches/pstack/swarm.patch) | Use the fast tier for workers, and a model-agnostic fallback, instead of a Cursor model id. |
+| [pstack/poteto-mode](patches/pstack/poteto-mode.patch) | Define the model tiers (strong, panel) in the Subagents section; playbooks use them instead of Cursor model ids. |
+| [pstack/setup-pstack](patches/pstack/setup-pstack.patch) | Configure tiers (strong, panel) mapped to the models a harness has, instead of writing Cursor model ids. |
+| [pstack/swarm](patches/pstack/swarm.patch) | Use a strong model at high for workers, and a model-agnostic fallback, instead of a Cursor model id. |
 | [pstack/technical-writing](patches/pstack/technical-writing.patch) | Let the model invoke it, with a trigger-first description, and add four rules from the deleted STE and plain-writing skills. |
 | [pstack/unslop](patches/pstack/unslop.patch) | Let the model invoke it, with a trigger-first description; add rules 34-41 and "How to apply" from three deleted anti-slop skills, plus an STE lint script. |
 | [taste-skill/design-taste-frontend](patches/taste-skill/design-taste-frontend.patch) | Typed-only /design-taste-frontend with a one-line description, in Claude and in Codex. |
