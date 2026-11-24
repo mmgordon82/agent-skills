@@ -5,12 +5,12 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from typer.testing import CliRunner
 
 import build
-from ci import release
+from ci import fix_patches, release
 
 
 class PipelineTests(unittest.TestCase):
@@ -21,6 +21,32 @@ class PipelineTests(unittest.TestCase):
 
     def temporary_directory(self):
         return tempfile.TemporaryDirectory(dir=self.cache)
+
+    def test_patch_fixer_reuses_open_pr_without_rebuilding(self) -> None:
+        url = "https://github.com/owner/repo/pull/1"
+        ask = Mock()
+        with (
+            patch.object(build, "load", return_value={}),
+            patch.object(fix_patches, "broken", return_value={"pstack": "b" * 40}),
+            patch.object(fix_patches, "sh", side_effect=["", url]) as sh,
+            contextlib.redirect_stdout(io.StringIO()) as output,
+        ):
+            self.assertEqual(fix_patches.run(ask=ask), 0)
+        ask.assert_not_called()
+        self.assertEqual(sh.call_count, 2)
+        self.assertIn("auto-fix/pstack-bbbbbbb", sh.call_args.args)
+        self.assertIn(url, output.getvalue())
+
+    def test_patch_fixer_dispatches_checks_for_the_pushed_branch(self) -> None:
+        branch = "auto-fix/pstack-bbbbbbb"
+        with patch.object(fix_patches, "sh", return_value="") as sh, contextlib.redirect_stdout(io.StringIO()):
+            fix_patches.publish(branch, {"pstack": "b" * 40}, "Rebuilt patches", draft=False, dry_run=False)
+        calls = [call.args for call in sh.call_args_list]
+        push = calls.index(("git", "push", "-q", "--force-with-lease", "origin", branch))
+        dispatch = calls.index(("gh", "workflow", "run", "check.yml", "--ref", branch))
+        create = next(i for i, call in enumerate(calls) if call[:3] == ("gh", "pr", "create"))
+        self.assertLess(push, dispatch)
+        self.assertLess(dispatch, create)
 
     def test_failed_build_preserves_dist(self) -> None:
         with self.temporary_directory() as tmp:
